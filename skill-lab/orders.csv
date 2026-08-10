@@ -1,0 +1,13 @@
+order_id,customer,region,product,revenue,load_timestamp
+ORD-1001,Acme Corp,West,Widget A,1200.50,2026-08-04T09:15:00Z
+ORD-1002,Beta LLC,East,Widget B,850.00,2026-08-04T09:20:00Z
+ORD-1003,Gamma Inc,North,Widget A,430.25,2026-08-04T09:30:00Z
+ORD-1004,Delta Co,South,Widget C,999.99,2026-08-04T10:00:00Z
+ORD-1005,Epsilon Ltd,West,Widget B,275.00,2026-08-04T10:05:00Z
+ORD-1006,Zeta Group,,Widget A,615.75,2026-08-04T10:10:00Z
+ORD-1007,Eta Partners,East,Widget C,-150.00,2026-08-04T10:20:00Z
+ORD-1008,Theta LLC,North,Widget B,320.00,2026-08-04T10:25:00Z
+ORD-1009,Iota Corp,South,Widget A,540.60,2026-08-01T07:00:00Z
+ORD-1010,Kappa Inc,West,Widget C,725.00,2026-08-04T11:00:00Z
+ORD-1010,Kappa Inc,West,Widget C,725.00,2026-08-04T11:00:00Z
+ORD-1012,Lambda Co,East,Widget B,410.40,2026-08-04T11:15:00Z

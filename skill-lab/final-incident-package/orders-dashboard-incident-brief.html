@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders Dashboard — Incident Brief</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --card-shadow:    0 1px 2px rgba(11,11,11,0.06), 0 1px 1px rgba(11,11,11,0.04);
+
+    --status-good:     #0ca30c;
+    --status-warning:  #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #d03b3b;
+
+    --series-blue:    #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --card-shadow:    0 1px 2px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.3);
+
+      --status-good:     #0ca30c;
+      --status-warning:  #fab219;
+      --status-serious:  #ec835a;
+      --status-critical: #e66767;
+
+      --series-blue:    #3987e5;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --card-shadow:    0 1px 2px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.3);
+
+    --status-good:     #0ca30c;
+    --status-warning:  #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #e66767;
+
+    --series-blue:    #3987e5;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+  .viz-root { padding: 32px 24px 64px; max-width: 1080px; margin: 0 auto; }
+
+  header.brief-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  header.brief-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  header.brief-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .meta {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .status-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: color-mix(in srgb, var(--status-critical) 12%, var(--surface-1));
+    border: 1px solid var(--status-critical);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .status-banner .icon {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--status-critical);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .status-banner .label {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+  }
+  .status-banner .sub {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    padding: 14px 16px;
+  }
+  .tile .tile-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .tile .tile-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .tile .tile-value.critical { color: var(--status-critical); }
+  .tile .tile-note {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+
+  section {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  table.checks {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.checks th, table.checks td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--gridline);
+    vertical-align: top;
+  }
+  table.checks th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.03em;
+  }
+  .badge.fail {
+    color: var(--status-critical);
+    background: color-mix(in srgb, var(--status-critical) 15%, transparent);
+  }
+  .badge.pass {
+    color: var(--status-good);
+    background: color-mix(in srgb, var(--status-good) 15%, transparent);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+  .two-col h2 { display: flex; align-items: center; gap: 6px; }
+  ul.fact-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+  }
+  ul.fact-list.unknown li { color: var(--text-secondary); }
+
+  .impact-value {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .decision-box {
+    border-left: 3px solid var(--status-critical);
+  }
+  .decision-box p { font-size: 13px; line-height: 1.6; margin: 0 0 10px; }
+  .decision-box p:last-child { margin-bottom: 0; }
+
+  footer.brief-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) { footer.brief-footer { grid-template-columns: 1fr; } }
+  footer.brief-footer .field-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  footer.brief-footer .field-value {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .sources {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 28px;
+    text-align: center;
+  }
+  .sources code {
+    background: var(--gridline);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="viz-root">
+
+  <header class="brief-header">
+    <div>
+      <h1>Orders Dashboard — Incident Brief</h1>
+      <p>Executive summary of the data-quality and pipeline incident affecting the scheduled orders dashboard publish.</p>
+    </div>
+    <div class="meta">
+      Date: 2026-08-04<br>
+      Prepared by: Claude Code (Colaberry Agent)
+    </div>
+  </header>
+
+  <div class="status-banner">
+    <div class="icon">✕</div>
+    <div>
+      <div class="label">STATUS: BLOCKED</div>
+      <div class="sub">Publish must not proceed — data-quality gate returned a FAIL / BLOCK verdict.</div>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="tile-label">Quality Verdict</div>
+      <div class="tile-value critical">FAIL</div>
+      <div class="tile-note">Recommendation: BLOCK</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Hard Violations</div>
+      <div class="tile-value critical">4</div>
+      <div class="tile-note">of 8 checks run</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Pipeline Run</div>
+      <div class="tile-value critical">FAILED</div>
+      <div class="tile-note">3 of 3 attempts, 0 rows loaded</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Last Good Partition</div>
+      <div class="tile-value">809 rows</div>
+      <div class="tile-note">Retained — no dirty data exposed</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Quality Check Results</h2>
+    <table class="checks">
+      <thead>
+        <tr><th>Check</th><th>Finding</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Freshness (&lt;24h)</td>
+          <td>One record dated ~3 days old</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>Key uniqueness / duplicates</td>
+          <td>One order record duplicated</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>Required field: region</td>
+          <td>One record missing region</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>Numeric rule: revenue &gt; 0</td>
+          <td>One record with negative revenue</td>
+          <td><span class="badge fail">FAIL</span></td>
+        </tr>
+        <tr>
+          <td>Schema</td>
+          <td>All expected columns present</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+        <tr>
+          <td>Expected volume (≥10 rows)</td>
+          <td>12 rows present</td>
+          <td><span class="badge pass">PASS</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Business Impact</h2>
+    <p class="impact-value">Not stated in source report — do not estimate. No dollar figure, customer count, or downstream-metric impact has been quantified.</p>
+  </section>
+
+  <div class="two-col">
+    <section>
+      <h2>What We Know</h2>
+      <ul class="fact-list">
+        <li>Data-quality gate verdict is <strong>FAIL</strong>; recommendation is <strong>BLOCK</strong>.</li>
+        <li>Four hard contract violations found: stale record, duplicate order, missing region, negative revenue.</li>
+        <li>The <code>orders_pipeline</code> ETL run failed all 3 attempts and loaded 0 rows; the prior good partition (809 rows) was retained automatically.</li>
+        <li>The pipeline's logged failure cause (an unmapped region value and one empty revenue field) does <strong>not</strong> match the specific records with issues — flagged as an unresolved discrepancy, not a confirmed link.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>What We Do Not Know</h2>
+      <ul class="fact-list unknown">
+        <li>Root cause of the specific dataset issues (stale record, duplicate, missing region, negative revenue).</li>
+        <li>Whether the dataset was actually produced by the failed pipeline run or a different source.</li>
+        <li>Financial or business impact of publishing or withholding the dashboard.</li>
+        <li>Resolution ETA.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="decision-box">
+    <h2>Decision or Action Needed</h2>
+    <p><strong>The orders dashboard publish must remain blocked</strong> until the dataset passes the quality gate. No partial or caveated publish is recommended — the FAIL verdict is driven by hard contract violations, not soft warnings.</p>
+    <p>Leadership should decide whether to (a) hold the publish until data engineering confirms and fixes the source of the dataset's issues, or (b) request an expedited investigation given the dashboard's scheduled publish date.</p>
+  </section>
+
+  <footer class="brief-footer">
+    <div>
+      <div class="field-label">Owner</div>
+      <div class="field-value">Not assigned — needs designation.</div>
+    </div>
+    <div>
+      <div class="field-label">Next Update</div>
+      <div class="field-value">Not yet scheduled.</div>
+    </div>
+  </footer>
+
+  <div class="sources">
+    Sources: <code>skill-lab/final-incident-package/data-quality-report.md</code> ·
+    <code>skill-lab/final-incident-package/etl-triage-report.md</code> ·
+    <code>skill-lab/final-incident-package/executive-dashboard-brief.md</code>
+  </div>
+
+</div>
+</body>
+</html>

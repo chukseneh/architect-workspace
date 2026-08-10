@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Triage — Agent Dashboard</title>
+<style>
+  :root{
+    --bg:#f3f5f9;
+    --panel:#ffffff;
+    --border:#e3e7ee;
+    --text:#12182b;
+    --muted:#6b7488;
+    --accent:#3454d1;
+    --accent-soft:#eaefff;
+    --emergency:#d1364a;
+    --emergency-soft:#fdecef;
+    --high:#c67c1a;
+    --high-soft:#fdf3e3;
+    --normal:#2f8f5b;
+    --normal-soft:#e8f7ef;
+    --low:#6b7488;
+    --low-soft:#eef0f4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Segoe UI", system-ui, -apple-system, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    background:var(--panel);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:18px;
+    letter-spacing:-0.01em;
+  }
+  .brand svg{width:26px;height:26px;}
+  .headerRight{display:flex;align-items:center;gap:22px;}
+  .stat{text-align:right;}
+  .stat .num{font-size:18px;font-weight:700;}
+  .stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;
+  }
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:22px 28px 60px;
+  }
+  .banner{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--emergency-soft);
+    border:1px solid #f3c3cb;
+    color:#8e1f30;
+    padding:12px 16px;
+    border-radius:10px;
+    margin-bottom:20px;
+    font-size:14px;
+  }
+  .banner svg{width:20px;height:20px;flex-shrink:0;}
+  .banner strong{font-weight:700;}
+  .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .toolbar h1{font-size:20px;margin:0;}
+  .toolbar .sub{font-size:13px;color:var(--muted);margin-top:2px;}
+  .filters{display:flex;gap:8px;}
+  .chip{
+    padding:6px 12px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+    border:1px solid var(--border);
+    background:var(--panel);
+    color:var(--muted);
+  }
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .board{display:flex;flex-direction:column;gap:10px;}
+  .ticket{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-left:5px solid var(--low);
+    border-radius:10px;
+    padding:14px 18px;
+    display:grid;
+    grid-template-columns:auto 1fr auto auto auto;
+    align-items:center;
+    gap:18px;
+    box-shadow:0 1px 2px rgba(18,24,43,0.04);
+  }
+  .ticket.emergency{border-left-color:var(--emergency);background:linear-gradient(0deg,var(--emergency-soft),var(--emergency-soft)),var(--panel);}
+  .ticket.high{border-left-color:var(--high);}
+  .ticket.normal{border-left-color:var(--normal);}
+  .ticket.low{border-left-color:var(--low);}
+  .badge{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    padding:5px 10px;
+    border-radius:6px;
+    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .badge svg{width:12px;height:12px;}
+  .badge.emergency{background:var(--emergency);color:#fff;}
+  .badge.high{background:var(--high-soft);color:var(--high);}
+  .badge.normal{background:var(--normal-soft);color:var(--normal);}
+  .badge.low{background:var(--low-soft);color:var(--muted);}
+  .ticket .body{min-width:0;}
+  .ticket .subject{font-weight:600;font-size:14.5px;margin-bottom:3px;}
+  .ticket .preview{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .topic{
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:4px 9px;
+    border-radius:6px;
+    white-space:nowrap;
+  }
+  .who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);white-space:nowrap;}
+  .who .dot{width:8px;height:8px;border-radius:50%;background:var(--normal);}
+  .time{font-size:12px;color:var(--muted);white-space:nowrap;text-align:right;min-width:56px;}
+  .legend{
+    display:flex;
+    gap:20px;
+    margin-top:26px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .legend .item{display:flex;align-items:center;gap:6px;}
+  .legend .sw{width:10px;height:10px;border-radius:3px;}
+  footer{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--muted);
+    padding:18px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M3 12l4-8 4 8 4-8 4 8" stroke="#3454d1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="19" r="3" fill="#d1364a"/></svg>
+    Triage
+  </div>
+  <div class="headerRight">
+    <div class="stat"><div class="num" style="color:var(--emergency)">2</div><div class="lbl">Emergencies</div></div>
+    <div class="stat"><div class="num">14</div><div class="lbl">Open</div></div>
+    <div class="stat"><div class="num">6m</div><div class="lbl">Avg. wait</div></div>
+    <div class="avatar">MK</div>
+  </div>
+</header>
+
+<main>
+  <div class="banner">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-2.96L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="#d1364a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span><strong>2 emergencies</strong> need attention — oldest has been waiting <strong>4 minutes</strong>.</span>
+  </div>
+
+  <div class="toolbar">
+    <div>
+      <h1>Today's Queue</h1>
+      <div class="sub">Sorted by urgency, then wait time — refreshed automatically</div>
+    </div>
+    <div class="filters">
+      <span class="chip active">All (14)</span>
+      <span class="chip">Emergency (2)</span>
+      <span class="chip">High (3)</span>
+      <span class="chip">Normal (7)</span>
+      <span class="chip">Low (2)</span>
+    </div>
+  </div>
+
+  <div class="board">
+
+    <div class="ticket emergency">
+      <span class="badge emergency">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 21h20L12 2z"/></svg>
+        Emergency
+      </span>
+      <div class="body">
+        <div class="subject">Production API returning 500s for all customers since 9:14am</div>
+        <div class="preview">"Every request to /v2/checkout is failing right now, our entire storefront is down..."</div>
+      </div>
+      <span class="topic">Outage</span>
+      <div class="who"><span class="dot" style="background:#d1364a"></span>Unassigned</div>
+      <div class="time">2m ago</div>
+    </div>
+
+    <div class="ticket emergency">
+      <span class="badge emergency">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 21h20L12 2z"/></svg>
+        Emergency
+      </span>
+      <div class="body">
+        <div class="subject">Suspicious login attempts on our account, may be compromised</div>
+        <div class="preview">"We saw 40 failed login attempts overnight from an unfamiliar IP range and need this..."</div>
+      </div>
+      <span class="topic">Security</span>
+      <div class="who"><span class="dot" style="background:#c67c1a"></span>Priya S.</div>
+      <div class="time">4m ago</div>
+    </div>
+
+    <div class="ticket high">
+      <span class="badge high">High</span>
+      <div class="body">
+        <div class="subject">Billing charged us twice for August invoice</div>
+        <div class="preview">"We noticed two identical charges of $349.00 on the 3rd, can someone reverse..."</div>
+      </div>
+      <span class="topic">Billing</span>
+      <div class="who"><span class="dot" style="background:#2f8f5b"></span>Devon R.</div>
+      <div class="time">9m ago</div>
+    </div>
+
+    <div class="ticket high">
+      <span class="badge high">High</span>
+      <div class="body">
+        <div class="subject">Export feature stuck at 0% for 20+ minutes</div>
+        <div class="preview">"Trying to export our Q3 report and the progress bar hasn't moved, other users..."</div>
+      </div>
+      <span class="topic">Bug</span>
+      <div class="who"><span class="dot" style="background:#6b7488"></span>Unassigned</div>
+      <div class="time">11m ago</div>
+    </div>
+
+    <div class="ticket high">
+      <span class="badge high">High</span>
+      <div class="body">
+        <div class="subject">Can't reset password, reset email never arrives</div>
+        <div class="preview">"Tried three times over the last hour, checked spam, still nothing. Need access..."</div>
+      </div>
+      <span class="topic">Account Access</span>
+      <div class="who"><span class="dot" style="background:#2f8f5b"></span>Priya S.</div>
+      <div class="time">15m ago</div>
+    </div>
+
+    <div class="ticket normal">
+      <span class="badge normal">Normal</span>
+      <div class="body">
+        <div class="subject">Question about upgrading from Team to Business plan</div>
+        <div class="preview">"We're at 18 seats now and want to know what changes on Business before we..."</div>
+      </div>
+      <span class="topic">Sales</span>
+      <div class="who"><span class="dot" style="background:#2f8f5b"></span>Devon R.</div>
+      <div class="time">22m ago</div>
+    </div>
+
+    <div class="ticket normal">
+      <span class="badge normal">Normal</span>
+      <div class="body">
+        <div class="subject">How do I add a teammate to our workspace?</div>
+        <div class="preview">"Can't find the invite button anywhere in settings, is this a permissions..."</div>
+      </div>
+      <span class="topic">How-To</span>
+      <div class="who"><span class="dot" style="background:#6b7488"></span>Unassigned</div>
+      <div class="time">27m ago</div>
+    </div>
+
+    <div class="ticket normal">
+      <span class="badge normal">Normal</span>
+      <div class="body">
+        <div class="subject">Feature request: dark mode for the reporting dashboard</div>
+        <div class="preview">"Not urgent at all, but several of us on the analytics team would love a..."</div>
+      </div>
+      <span class="topic">Feature Request</span>
+      <div class="who"><span class="dot" style="background:#2f8f5b"></span>Marcus T.</div>
+      <div class="time">34m ago</div>
+    </div>
+
+    <div class="ticket low">
+      <span class="badge low">Low</span>
+      <div class="body">
+        <div class="subject">Thanks for the quick fix last week!</div>
+        <div class="preview">"Just wanted to follow up and say the sync issue from last Tuesday hasn't..."</div>
+      </div>
+      <span class="topic">General</span>
+      <div class="who"><span class="dot" style="background:#2f8f5b"></span>Marcus T.</div>
+      <div class="time">51m ago</div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="sw" style="background:#d1364a"></span>Emergency — respond immediately</div>
+    <div class="item"><span class="sw" style="background:#c67c1a"></span>High — respond within the hour</div>
+    <div class="item"><span class="sw" style="background:#2f8f5b"></span>Normal — respond same day</div>
+    <div class="item"><span class="sw" style="background:#6b7488"></span>Low — respond when free</div>
+  </div>
+</main>
+
+<footer>Sample data is fictional and generated for demonstration purposes only — no real customer information is shown.</footer>
+
+</body>
+</html>
