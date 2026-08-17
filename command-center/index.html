@@ -1,0 +1,797 @@
+<title>AI Healthcare Operations Command Centre</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* ---------------------------------------------------------------
+     Brand colours: not yet chosen for this project (see CLAUDE.md
+     "Your colours"). Everything below is a neutral, slate-leaning
+     palette. --accent is the single line to change once a brand
+     colour is picked — nothing else in this file references a
+     hex value directly.
+     --------------------------------------------------------------- */
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-alt: #eceff3;
+    --border: #dde1e7;
+    --text: #1b212c;
+    --text-muted: #5b6472;
+    --text-faint: #8993a3;
+    --accent: #3d4759; /* placeholder neutral — swap when a brand colour is chosen */
+    --accent-soft: #e7e9ee;
+
+    --status-connected: #2f8f5b;
+    --status-connected-bg: #e6f3ec;
+    --status-error: #c1443a;
+    --status-error-bg: #f7e8e6;
+    --status-unknown: #8993a3;
+    --status-unknown-bg: #eceff3;
+
+    --shadow: 0 1px 2px rgba(20, 24, 32, 0.04), 0 4px 16px rgba(20, 24, 32, 0.05);
+    --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171c;
+      --surface: #1b1f26;
+      --surface-raised: #20242c;
+      --surface-alt: #262b34;
+      --border: #333944;
+      --text: #e8eaee;
+      --text-muted: #a2a9b5;
+      --text-faint: #6b7280;
+      --accent: #aab3c5;
+      --accent-soft: #2a2f3a;
+
+      --status-connected: #4fb87f;
+      --status-connected-bg: #1c2c22;
+      --status-error: #e0685c;
+      --status-error-bg: #2f1e1c;
+      --status-unknown: #7d8595;
+      --status-unknown-bg: #262b34;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14171c;
+    --surface: #1b1f26;
+    --surface-raised: #20242c;
+    --surface-alt: #262b34;
+    --border: #333944;
+    --text: #e8eaee;
+    --text-muted: #a2a9b5;
+    --text-faint: #6b7280;
+    --accent: #aab3c5;
+    --accent-soft: #2a2f3a;
+
+    --status-connected: #4fb87f;
+    --status-connected-bg: #1c2c22;
+    --status-error: #e0685c;
+    --status-error-bg: #2f1e1c;
+    --status-unknown: #7d8595;
+    --status-unknown-bg: #262b34;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { min-height: 100vh; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .shell { max-width: 1180px; margin: 0 auto; padding: 0 28px 64px; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .topbar-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand-mark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.55rem;
+    letter-spacing: -0.01em;
+  }
+  .brand-tagline {
+    color: var(--text-muted);
+    font-size: 0.83rem;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .clock {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.35;
+  }
+  .clock strong { color: var(--text); font-weight: 600; }
+
+  .mode-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-alt);
+    padding: 3px;
+    gap: 2px;
+  }
+  .mode-toggle button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .mode-toggle button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .mode-toggle button:hover:not(.active) { color: var(--text); }
+
+  /* ---------- sample banner ---------- */
+  .sample-banner {
+    display: none;
+    background: repeating-linear-gradient(
+      135deg,
+      var(--status-unknown-bg),
+      var(--status-unknown-bg) 10px,
+      var(--surface-alt) 10px,
+      var(--surface-alt) 20px
+    );
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    padding: 7px 12px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  body.mode-sample .sample-banner { display: block; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 44px 0 32px; }
+  .hero h1 { font-size: 2.1rem; line-height: 1.15; max-width: 720px; }
+  .hero-mission {
+    margin-top: 12px;
+    max-width: 640px;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .facts-row {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .fact {
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+  .fact-value { font-size: 1.5rem; font-weight: 600; font-family: var(--font-mono); }
+  .fact-label { margin-top: 4px; font-size: 0.76rem; color: var(--text-muted); }
+  .fact-sub { margin-top: 2px; font-size: 0.72rem; color: var(--text-faint); }
+
+  @media (max-width: 780px) {
+    .facts-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- card grid ---------- */
+  .grid {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+  }
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 1.02rem; font-weight: 600; font-family: var(--font-body); }
+  .card-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .sample-chip {
+    display: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--status-error);
+    background: var(--status-error-bg);
+    border: 1px solid var(--status-error);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+  body.mode-sample .sample-chip { display: inline-block; }
+
+  /* release card */
+  .release-name { font-family: var(--font-display); font-size: 1.2rem; margin-top: 2px; }
+  .release-dates { margin-top: 4px; color: var(--text-muted); font-size: 0.85rem; }
+  .progress-track {
+    margin-top: 14px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .progress-caption {
+    margin-top: 6px;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .rail { margin-top: 24px; display: flex; gap: 6px; }
+  .rail-step {
+    flex: 1;
+    text-align: left;
+  }
+  .rail-bar {
+    height: 5px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+  }
+  .rail-step.done .rail-bar { background: var(--text-faint); }
+  .rail-step.active .rail-bar { background: var(--accent); }
+  .rail-id {
+    margin-top: 6px;
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+  }
+  .rail-step.active .rail-id { color: var(--text); font-weight: 700; }
+  .rail-step.done .rail-id { color: var(--text-muted); }
+
+  /* systems card */
+  .system-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.86rem;
+  }
+  .system-row:last-child { border-bottom: none; }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex: none;
+    background: var(--status-unknown);
+  }
+  .dot.connected { background: var(--status-connected); }
+  .dot.error { background: var(--status-error); }
+  .system-name { flex: 1; }
+  .system-meta { color: var(--text-faint); font-size: 0.75rem; font-family: var(--font-mono); }
+
+  .systems-summary {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* guardrails card */
+  .guardrail {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .guardrail:last-child { border-bottom: none; }
+  .guardrail-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .guardrail-id { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); }
+  .guardrail-text { margin-top: 4px; font-size: 0.87rem; line-height: 1.4; }
+  .guardrail-note { margin-top: 4px; font-size: 0.76rem; color: var(--text-faint); }
+  .pill {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.not-enforced { background: var(--status-unknown-bg); color: var(--status-unknown); }
+  .pill.enforced { background: var(--status-connected-bg); color: var(--status-connected); }
+
+  /* countdown card */
+  .countdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .countdown-row:last-child { border-bottom: none; }
+  .countdown-label { font-size: 0.85rem; color: var(--text-muted); }
+  .countdown-value { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; }
+
+  /* tabs preview */
+  .tabs-section { margin-top: 36px; }
+  .tabs-section h2 { font-size: 1rem; font-family: var(--font-body); font-weight: 600; }
+  .tabs-hint { margin-top: 4px; font-size: 0.82rem; color: var(--text-muted); }
+  .tabs-strip {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+  .tab-chip {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.83rem;
+  }
+  .tab-chip.here {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .tab-chip-name { font-weight: 600; }
+  .tab-chip-status {
+    margin-top: 5px;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .tab-chip.here .tab-chip-status { color: var(--accent); font-weight: 700; }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 0.76rem;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+</style>
+
+<div class="sample-banner">Sample data — for shape and layout only, not a real measurement</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">AI Healthcare Operations Command Centre</span>
+    </div>
+    <div class="topbar-right">
+      <div class="clock">
+        <div><strong id="clock-date">—</strong></div>
+        <div id="clock-time">—</div>
+      </div>
+      <div class="mode-toggle" role="group" aria-label="Data mode">
+        <button type="button" id="btn-real" onclick="setMode('real')">Real</button>
+        <button type="button" id="btn-sample" onclick="setMode('sample')">Sample</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <section class="hero">
+    <h1 id="mission-heading">AI-powered operational intelligence for NHS: predicting pressure, identifying risk, and recommending interventions.</h1>
+    <p class="hero-mission">This is the Command Centre for that build — one page showing what is being built, what it is meant to move, and how far along it is. Nine tabs total; this is tab 1 of 9. The rest are scaffolded below and will be built out one at a time.</p>
+
+    <div class="facts-row">
+      <div class="fact">
+        <div class="fact-value" id="fact-release">—</div>
+        <div class="fact-label">Current release</div>
+        <div class="fact-sub" id="fact-release-sub">—</div>
+      </div>
+      <div class="fact">
+        <div class="fact-value" id="fact-systems">—</div>
+        <div class="fact-label">Systems connected</div>
+        <div class="fact-sub" id="fact-systems-sub">—</div>
+      </div>
+      <div class="fact">
+        <div class="fact-value" id="fact-guardrails">0 / 2</div>
+        <div class="fact-label">Guardrails enforced in code</div>
+        <div class="fact-sub">nothing shipped yet</div>
+      </div>
+      <div class="fact">
+        <div class="fact-value" id="fact-demo">—</div>
+        <div class="fact-label">Days to demo</div>
+        <div class="fact-sub">2026-10-08</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-eyebrow">Release</div>
+          <div class="card-title">Where the build stands right now</div>
+        </div>
+      </div>
+      <div class="release-name" id="release-name">—</div>
+      <div class="release-dates" id="release-dates">—</div>
+      <div class="progress-track"><div class="progress-fill" id="release-progress" style="width:0%"></div></div>
+      <div class="progress-caption">
+        <span id="release-day-caption">—</span>
+        <span id="release-story-caption">—</span>
+      </div>
+
+      <div class="rail" id="release-rail"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-eyebrow">Systems</div>
+          <div class="card-title">What is actually live</div>
+        </div>
+        <span class="sample-chip">Sample</span>
+      </div>
+      <div id="systems-list"></div>
+      <div class="systems-summary" id="systems-summary">—</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-eyebrow">Guardrails</div>
+          <div class="card-title">Promises this system makes</div>
+        </div>
+      </div>
+      <div id="guardrails-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-eyebrow">Timeline</div>
+          <div class="card-title">Countdown</div>
+        </div>
+      </div>
+      <div class="countdown-row">
+        <span class="countdown-label">Build ends</span>
+        <span class="countdown-value mono" id="countdown-build">—</span>
+      </div>
+      <div class="countdown-row">
+        <span class="countdown-label">Demo day</span>
+        <span class="countdown-value mono" id="countdown-demo">—</span>
+      </div>
+      <div class="countdown-row">
+        <span class="countdown-label">Demo prep window</span>
+        <span class="countdown-value mono">2026-10-01 → 2026-10-08</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tabs-section">
+    <h2>All 9 tabs</h2>
+    <p class="tabs-hint">Overview is built. The other eight are scaffolded here as a map of what's coming next — none of them have content yet.</p>
+    <div class="tabs-strip" id="tabs-strip"></div>
+  </section>
+
+  <footer>
+    <span>Every number on this page reads from one object — <span class="mono">COMMAND_CENTER_DATA</span> in this file. Future tabs read from the same object.</span>
+    <span id="footer-mode">Mode: Real</span>
+  </footer>
+</div>
+
+<script>
+  // ---------------------------------------------------------------
+  // Single data source. Nothing on this page is hardcoded outside
+  // this object — when the real backend exists, this is the only
+  // place that changes.
+  // ---------------------------------------------------------------
+  const COMMAND_CENTER_DATA = {
+    meta: {
+      demoDay: "2026-10-08",
+      buildEnd: "2026-10-01",
+    },
+    releases: [
+      { id: "r0", name: "Initial Data Ingestion and Basic Prediction", stories: 3, start: "2026-08-16", end: "2026-08-21" },
+      { id: "r1", name: "AI Intelligence Layer", stories: 1, start: "2026-08-29", end: "2026-08-29" },
+      { id: "r2", name: "AI Decision Engine and Dashboard", stories: 2, start: "2026-09-02", end: "2026-09-07" },
+      { id: "r3", name: "AI What-If Simulator and Governance", stories: 2, start: "2026-09-11", end: "2026-09-15" },
+      { id: "r4", name: "Performance Optimization and Final Integration", stories: 1, start: "2026-10-01", end: "2026-10-01" },
+    ],
+    systems: ["NHS", "Ambulance", "Community", "Staffing", "Emergency", "Discharge", "Hospital", "Claude Code"],
+    guardrails: [
+      {
+        id: "REQ-013",
+        text: "The system must flag data uncertainties for human review.",
+        enforced: false,
+        note: "No prediction or ingestion code exists yet, so there is nothing producing uncertainty to flag.",
+      },
+      {
+        id: "REQ-018",
+        text: "The system must not make autonomous clinical decisions.",
+        enforced: false,
+        note: "No decision engine exists yet (that lands in r2). Enforcement will be reviewed when it does.",
+      },
+    ],
+    tabs: [
+      { label: "Overview", status: "here" },
+      { label: "Outcomes", status: "pending" },
+      { label: "Users & Use Case", status: "pending" },
+      { label: "Guardrails", status: "pending" },
+      { label: "Systems", status: "pending" },
+      { label: "Project Management", status: "pending" },
+      { label: "AI Agents", status: "pending" },
+      { label: "Knowledge Base", status: "pending" },
+      { label: "Data Model", status: "pending" },
+    ],
+  };
+
+  // Illustrative only — used purely to demonstrate what a partially
+  // connected Systems panel will look like. Never shown in Real mode.
+  const SAMPLE_SYSTEM_STATUS = {
+    "NHS": "connected",
+    "Ambulance": "connected",
+    "Community": "error",
+    "Staffing": "connected",
+    "Emergency": "not_connected",
+    "Discharge": "connected",
+    "Hospital": "not_connected",
+    "Claude Code": "connected",
+  };
+
+  const DAY_MS = 86400000;
+  function parseDate(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
+  function dateOnly(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function fmtDate(d) {
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+  function daysBetween(a, b) { return Math.round((dateOnly(b) - dateOnly(a)) / DAY_MS); }
+
+  function getMode() {
+    return localStorage.getItem("cc_mode") === "sample" ? "sample" : "real";
+  }
+
+  function setMode(mode) {
+    localStorage.setItem("cc_mode", mode);
+    applyMode();
+  }
+
+  function applyMode() {
+    const mode = getMode();
+    document.body.classList.toggle("mode-sample", mode === "sample");
+    document.getElementById("btn-real").classList.toggle("active", mode === "real");
+    document.getElementById("btn-sample").classList.toggle("active", mode === "sample");
+    document.getElementById("footer-mode").textContent = "Mode: " + (mode === "sample" ? "Sample" : "Real");
+    renderSystems();
+  }
+
+  function renderClock() {
+    const now = new Date();
+    document.getElementById("clock-date").textContent = fmtDate(now);
+    document.getElementById("clock-time").textContent = now.toLocaleTimeString();
+  }
+
+  function renderRelease() {
+    const today = new Date();
+    const releases = COMMAND_CENTER_DATA.releases;
+    let current = null;
+    let next = null;
+    for (const r of releases) {
+      const start = parseDate(r.start);
+      const end = parseDate(r.end);
+      if (dateOnly(today) >= start && dateOnly(today) <= end) current = r;
+      if (!next && dateOnly(today) < start) next = r;
+    }
+
+    const nameEl = document.getElementById("release-name");
+    const datesEl = document.getElementById("release-dates");
+    const progressEl = document.getElementById("release-progress");
+    const dayCaptionEl = document.getElementById("release-day-caption");
+    const storyCaptionEl = document.getElementById("release-story-caption");
+    const releaseFact = document.getElementById("fact-release");
+    const releaseFactSub = document.getElementById("fact-release-sub");
+
+    if (current) {
+      const start = parseDate(current.start);
+      const end = parseDate(current.end);
+      const totalDays = daysBetween(start, end) + 1;
+      const dayIndex = Math.min(totalDays, Math.max(1, daysBetween(start, today) + 1));
+      nameEl.textContent = current.id.toUpperCase() + " — " + current.name;
+      datesEl.textContent = fmtDate(start) + " → " + fmtDate(end) + " · in progress";
+      progressEl.style.width = Math.round((dayIndex / totalDays) * 100) + "%";
+      dayCaptionEl.textContent = "Day " + dayIndex + " of " + totalDays;
+      storyCaptionEl.textContent = current.stories + " " + (current.stories === 1 ? "story" : "stories");
+      releaseFact.textContent = current.id.toUpperCase();
+      releaseFactSub.textContent = "day " + dayIndex + " of " + totalDays;
+    } else if (next) {
+      const start = parseDate(next.start);
+      const untilStart = daysBetween(today, start);
+      nameEl.textContent = next.id.toUpperCase() + " — " + next.name;
+      datesEl.textContent = fmtDate(start) + " → " + fmtDate(parseDate(next.end)) + " · not started";
+      progressEl.style.width = "0%";
+      dayCaptionEl.textContent = "Starts in " + untilStart + " day" + (untilStart === 1 ? "" : "s");
+      storyCaptionEl.textContent = next.stories + " " + (next.stories === 1 ? "story" : "stories");
+      releaseFact.textContent = next.id.toUpperCase();
+      releaseFactSub.textContent = "starts in " + untilStart + "d";
+    } else {
+      const last = releases[releases.length - 1];
+      nameEl.textContent = "All releases complete";
+      datesEl.textContent = "Last release " + last.id.toUpperCase() + " ended " + fmtDate(parseDate(last.end));
+      progressEl.style.width = "100%";
+      dayCaptionEl.textContent = "—";
+      storyCaptionEl.textContent = "—";
+      releaseFact.textContent = "done";
+      releaseFactSub.textContent = "all releases ended";
+    }
+
+    // Rail of all releases
+    const rail = document.getElementById("release-rail");
+    rail.innerHTML = "";
+    releases.forEach((r) => {
+      const end = parseDate(r.end);
+      const isDone = dateOnly(today) > end;
+      const isActive = current && current.id === r.id;
+      const step = document.createElement("div");
+      step.className = "rail-step" + (isDone ? " done" : "") + (isActive ? " active" : "");
+      step.innerHTML = '<div class="rail-bar"></div><div class="rail-id">' + r.id.toUpperCase() + "</div>";
+      rail.appendChild(step);
+    });
+  }
+
+  function renderSystems() {
+    const mode = getMode();
+    const list = document.getElementById("systems-list");
+    const summary = document.getElementById("systems-summary");
+    const factEl = document.getElementById("fact-systems");
+    const factSubEl = document.getElementById("fact-systems-sub");
+    list.innerHTML = "";
+
+    let connectedCount = 0;
+    COMMAND_CENTER_DATA.systems.forEach((name) => {
+      const status = mode === "sample" ? SAMPLE_SYSTEM_STATUS[name] : "not_connected";
+      if (status === "connected") connectedCount++;
+      const row = document.createElement("div");
+      row.className = "system-row";
+      const metaText =
+        mode === "real"
+          ? "never checked"
+          : status === "connected"
+          ? "checked moments ago"
+          : status === "error"
+          ? "last attempt failed"
+          : "never checked";
+      row.innerHTML =
+        '<span class="dot ' + (status === "connected" ? "connected" : status === "error" ? "error" : "") + '"></span>' +
+        '<span class="system-name">' + name + "</span>" +
+        '<span class="system-meta">' + metaText + "</span>";
+      list.appendChild(row);
+    });
+
+    const total = COMMAND_CENTER_DATA.systems.length;
+    factEl.textContent = connectedCount + " / " + total;
+
+    if (mode === "sample") {
+      summary.textContent = "Sample connectivity, for layout only — not a real measurement.";
+      factSubEl.textContent = "sample — illustrative";
+    } else {
+      summary.textContent = "None of the " + total + " systems are connected yet. That's expected on day one, not an error.";
+      factSubEl.textContent = "none connected yet";
+    }
+  }
+
+  function renderGuardrails() {
+    const list = document.getElementById("guardrails-list");
+    list.innerHTML = "";
+    let enforcedCount = 0;
+    COMMAND_CENTER_DATA.guardrails.forEach((g) => {
+      if (g.enforced) enforcedCount++;
+      const row = document.createElement("div");
+      row.className = "guardrail";
+      row.innerHTML =
+        '<div class="guardrail-top">' +
+        '<span class="guardrail-id">' + g.id + "</span>" +
+        '<span class="pill ' + (g.enforced ? "enforced" : "not-enforced") + '">' +
+        (g.enforced ? "Enforced" : "Not enforced yet") +
+        "</span>" +
+        "</div>" +
+        '<div class="guardrail-text">' + g.text + "</div>" +
+        '<div class="guardrail-note">' + g.note + "</div>";
+      list.appendChild(row);
+    });
+    document.getElementById("fact-guardrails").textContent = enforcedCount + " / " + COMMAND_CENTER_DATA.guardrails.length;
+  }
+
+  function renderCountdowns() {
+    const today = new Date();
+    const buildEnd = parseDate(COMMAND_CENTER_DATA.meta.buildEnd);
+    const demoDay = parseDate(COMMAND_CENTER_DATA.meta.demoDay);
+    const toBuild = daysBetween(today, buildEnd);
+    const toDemo = daysBetween(today, demoDay);
+
+    document.getElementById("countdown-build").textContent =
+      toBuild > 0 ? toBuild + " days" : toBuild === 0 ? "today" : Math.abs(toBuild) + " days ago";
+    document.getElementById("countdown-demo").textContent =
+      toDemo > 0 ? toDemo + " days" : toDemo === 0 ? "today" : Math.abs(toDemo) + " days ago";
+    document.getElementById("fact-demo").textContent = toDemo > 0 ? toDemo : toDemo === 0 ? "today" : "past";
+  }
+
+  function renderTabs() {
+    const strip = document.getElementById("tabs-strip");
+    strip.innerHTML = "";
+    COMMAND_CENTER_DATA.tabs.forEach((t) => {
+      const chip = document.createElement("div");
+      chip.className = "tab-chip" + (t.status === "here" ? " here" : "");
+      chip.innerHTML =
+        '<div class="tab-chip-name">' + t.label + "</div>" +
+        '<div class="tab-chip-status">' + (t.status === "here" ? "You are here" : "Not built yet") + "</div>";
+      strip.appendChild(chip);
+    });
+  }
+
+  function init() {
+    applyMode();
+    renderClock();
+    renderRelease();
+    renderGuardrails();
+    renderCountdowns();
+    renderTabs();
+    setInterval(renderClock, 1000);
+  }
+
+  init();
+</script>
