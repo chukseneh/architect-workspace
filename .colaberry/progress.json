@@ -10,7 +10,7 @@
         },
         {
           "text": "Given sample mode, when any tab is shown, then the sample data is visibly labelled as sample.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
@@ -22,7 +22,7 @@
         },
         {
           "text": "Trust - no tab shows a number, a connection or a result the project has not actually produced.",
-          "passed": false
+          "passed": true
         }
       ]
     }
