@@ -6,7 +6,7 @@
       "criteria": [
         {
           "text": "Given the Command Center, when it is opened, then every tab is reachable and every card drills down one level.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given sample mode, when any tab is shown, then the sample data is visibly labelled as sample.",
