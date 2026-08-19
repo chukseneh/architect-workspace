@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "demoDay": "2026-10-08",
+    "buildEnd": "2026-10-01"
+  },
+  "releases": [
+    { "id": "r0", "name": "Initial Data Ingestion and Basic Prediction", "stories": 3, "start": "2026-08-16", "end": "2026-08-21" },
+    { "id": "r1", "name": "AI Intelligence Layer", "stories": 1, "start": "2026-08-29", "end": "2026-08-29" },
+    { "id": "r2", "name": "AI Decision Engine and Dashboard", "stories": 2, "start": "2026-09-02", "end": "2026-09-07" },
+    { "id": "r3", "name": "AI What-If Simulator and Governance", "stories": 2, "start": "2026-09-11", "end": "2026-09-15" },
+    { "id": "r4", "name": "Performance Optimization and Final Integration", "stories": 1, "start": "2026-10-01", "end": "2026-10-01" }
+  ],
+  "systems": ["NHS", "Ambulance", "Community", "Staffing", "Emergency", "Discharge", "Hospital", "Claude Code"],
+  "guardrails": [
+    {
+      "id": "REQ-013",
+      "text": "The system must flag data uncertainties for human review.",
+      "enforced": false,
+      "note": "No prediction or ingestion code exists yet, so there is nothing producing uncertainty to flag."
+    },
+    {
+      "id": "REQ-018",
+      "text": "The system must not make autonomous clinical decisions.",
+      "enforced": false,
+      "note": "No decision engine exists yet (that lands in r2). Enforcement will be reviewed when it does."
+    }
+  ],
+  "tabs": [
+    { "label": "Overview", "status": "here" },
+    { "label": "Outcomes", "status": "pending" },
+    { "label": "Users & Use Case", "status": "pending" },
+    { "label": "Guardrails", "status": "pending" },
+    { "label": "Systems", "status": "pending" },
+    { "label": "Project Management", "status": "pending" },
+    { "label": "AI Agents", "status": "pending" },
+    { "label": "Knowledge Base", "status": "pending" },
+    { "label": "Data Model", "status": "pending" }
+  ],
+  "sampleSystemStatus": {
+    "NHS": "connected",
+    "Ambulance": "connected",
+    "Community": "error",
+    "Staffing": "connected",
+    "Emergency": "not_connected",
+    "Discharge": "connected",
+    "Hospital": "not_connected",
+    "Claude Code": "connected"
+  }
+}

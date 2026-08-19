@@ -14,11 +14,11 @@
         },
         {
           "text": "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given .colaberry/manifest.json, when any tab is shown, then it displays how old the data is and warns when that age exceeds a week.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust - no tab shows a number, a connection or a result the project has not actually produced.",

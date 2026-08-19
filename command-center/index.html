@@ -409,6 +409,51 @@
     gap: 16px;
     flex-wrap: wrap;
   }
+
+  /* ---------- data age ---------- */
+  .data-age { margin-top: 4px; font-size: 0.72rem; color: var(--text-faint); }
+  .data-age.stale { color: var(--status-error); font-weight: 700; }
+
+  /* ---------- load error ---------- */
+  .load-error {
+    display: none;
+    margin-top: 20px;
+    padding: 16px 18px;
+    border: 1px solid var(--status-error);
+    background: var(--status-error-bg);
+    color: var(--status-error);
+    border-radius: 10px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+  }
+  .load-error.show { display: block; }
+  .load-error code {
+    font-family: var(--font-mono);
+    background: rgba(0, 0, 0, 0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  /* ---------- definition of done card ---------- */
+  .dod-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .dod-item:last-child { border-bottom: none; }
+  .dod-status {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    flex: none;
+    letter-spacing: 0.03em;
+  }
+  .dod-status.pass { color: var(--status-connected); }
+  .dod-status.fail { color: var(--status-unknown); }
 </style>
 
 <div class="sample-banner">Sample data — for shape and layout only, not a real measurement</div>
@@ -422,6 +467,7 @@
       <div class="clock">
         <div><strong id="clock-date">—</strong></div>
         <div id="clock-time">—</div>
+        <div class="data-age" id="data-age">data not loaded yet</div>
       </div>
       <div class="mode-toggle" role="group" aria-label="Data mode">
         <button type="button" id="btn-real" onclick="setMode('real')">Real</button>
@@ -432,6 +478,8 @@
 </header>
 
 <div class="shell">
+  <div class="load-error" id="load-error"></div>
+
   <section class="hero">
     <h1 id="mission-heading">AI-powered operational intelligence for NHS: predicting pressure, identifying risk, and recommending interventions.</h1>
     <p class="hero-mission">This is the Command Centre for that build — one page showing what is being built, what it is meant to move, and how far along it is. Nine tabs total; this is tab 1 of 9. The rest are scaffolded below and will be built out one at a time.</p>
@@ -448,7 +496,7 @@
         <div class="fact-sub" id="fact-systems-sub">—</div>
       </div>
       <div class="fact">
-        <div class="fact-value" id="fact-guardrails">0 / 2</div>
+        <div class="fact-value" id="fact-guardrails">—</div>
         <div class="fact-label">Guardrails enforced in code</div>
         <div class="fact-sub">nothing shipped yet</div>
       </div>
@@ -521,6 +569,17 @@
         <span class="countdown-value mono">2026-10-01 → 2026-10-08</span>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-eyebrow">Definition of Done</div>
+          <div class="card-title" id="dod-title">—</div>
+        </div>
+      </div>
+      <div id="dod-list"></div>
+      <div class="systems-summary" id="dod-summary">—</div>
+    </div>
   </section>
 
   <section class="tabs-section">
@@ -530,69 +589,47 @@
   </section>
 
   <footer>
-    <span>Every number on this page reads from one object — <span class="mono">COMMAND_CENTER_DATA</span> in this file. Future tabs read from the same object.</span>
+    <span>Every number on this page is read at runtime from <span class="mono">.colaberry/plan.json</span>, <span class="mono">progress.json</span>, and <span class="mono">manifest.json</span> — nothing here is hardcoded. Future tabs read from the same files.</span>
     <span id="footer-mode">Mode: Real</span>
   </footer>
 </div>
 
 <script>
   // ---------------------------------------------------------------
-  // Single data source. Nothing on this page is hardcoded outside
-  // this object — when the real backend exists, this is the only
-  // place that changes.
+  // Data comes from three files under .colaberry/, fetched at
+  // runtime. Nothing in this script is hardcoded — if these files
+  // are missing or this page is opened as file:// instead of being
+  // served over HTTP, fetch() fails and the page shows an honest
+  // error instead of falling back to fake numbers.
   // ---------------------------------------------------------------
-  const COMMAND_CENTER_DATA = {
-    meta: {
-      demoDay: "2026-10-08",
-      buildEnd: "2026-10-01",
-    },
-    releases: [
-      { id: "r0", name: "Initial Data Ingestion and Basic Prediction", stories: 3, start: "2026-08-16", end: "2026-08-21" },
-      { id: "r1", name: "AI Intelligence Layer", stories: 1, start: "2026-08-29", end: "2026-08-29" },
-      { id: "r2", name: "AI Decision Engine and Dashboard", stories: 2, start: "2026-09-02", end: "2026-09-07" },
-      { id: "r3", name: "AI What-If Simulator and Governance", stories: 2, start: "2026-09-11", end: "2026-09-15" },
-      { id: "r4", name: "Performance Optimization and Final Integration", stories: 1, start: "2026-10-01", end: "2026-10-01" },
-    ],
-    systems: ["NHS", "Ambulance", "Community", "Staffing", "Emergency", "Discharge", "Hospital", "Claude Code"],
-    guardrails: [
-      {
-        id: "REQ-013",
-        text: "The system must flag data uncertainties for human review.",
-        enforced: false,
-        note: "No prediction or ingestion code exists yet, so there is nothing producing uncertainty to flag.",
-      },
-      {
-        id: "REQ-018",
-        text: "The system must not make autonomous clinical decisions.",
-        enforced: false,
-        note: "No decision engine exists yet (that lands in r2). Enforcement will be reviewed when it does.",
-      },
-    ],
-    tabs: [
-      { label: "Overview", status: "here" },
-      { label: "Outcomes", status: "pending" },
-      { label: "Users & Use Case", status: "pending" },
-      { label: "Guardrails", status: "pending" },
-      { label: "Systems", status: "pending" },
-      { label: "Project Management", status: "pending" },
-      { label: "AI Agents", status: "pending" },
-      { label: "Knowledge Base", status: "pending" },
-      { label: "Data Model", status: "pending" },
-    ],
-  };
+  let PLAN = null;
+  let PROGRESS = null;
+  let MANIFEST = null;
 
-  // Illustrative only — used purely to demonstrate what a partially
-  // connected Systems panel will look like. Never shown in Real mode.
-  const SAMPLE_SYSTEM_STATUS = {
-    "NHS": "connected",
-    "Ambulance": "connected",
-    "Community": "error",
-    "Staffing": "connected",
-    "Emergency": "not_connected",
-    "Discharge": "connected",
-    "Hospital": "not_connected",
-    "Claude Code": "connected",
-  };
+  async function fetchJson(path) {
+    const res = await fetch(path, { cache: "no-store" });
+    if (!res.ok) throw new Error(path + " responded " + res.status);
+    return res.json();
+  }
+
+  async function loadData() {
+    [PLAN, PROGRESS, MANIFEST] = await Promise.all([
+      fetchJson("/.colaberry/plan.json"),
+      fetchJson("/.colaberry/progress.json"),
+      fetchJson("/.colaberry/manifest.json"),
+    ]);
+  }
+
+  function showLoadError(err) {
+    const el = document.getElementById("load-error");
+    el.innerHTML =
+      "Could not load <code>.colaberry/plan.json</code>, <code>progress.json</code>, or <code>manifest.json</code> (" +
+      String(err.message || err) +
+      "). This page reads data at runtime and cannot be opened directly as a local file. Start the server: " +
+      "<code>powershell -File scripts/serveCommandCenter.ps1</code>, then open " +
+      "<code>http://localhost:8420/command-center/index.html</code>.";
+    el.classList.add("show");
+  }
 
   const DAY_MS = 86400000;
   function parseDate(s) { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); }
@@ -626,9 +663,62 @@
     document.getElementById("clock-time").textContent = now.toLocaleTimeString();
   }
 
+  function renderDataAge() {
+    const el = document.getElementById("data-age");
+    if (!MANIFEST || !MANIFEST.generated_at) {
+      el.textContent = "data age unknown";
+      el.classList.remove("stale");
+      return;
+    }
+    const generated = new Date(MANIFEST.generated_at);
+    const ageDays = Math.floor((Date.now() - generated.getTime()) / DAY_MS);
+    const staleAfter = MANIFEST.stale_after_days || 7;
+    const isStale = ageDays > staleAfter;
+    el.textContent =
+      "Data as of " + fmtDate(generated) + " (" + ageDays + (ageDays === 1 ? " day" : " days") + " old)" +
+      (isStale ? " — stale, older than " + staleAfter + " days" : "");
+    el.classList.toggle("stale", isStale);
+  }
+
+  function renderDefinitionOfDone() {
+    const titleEl = document.getElementById("dod-title");
+    const list = document.getElementById("dod-list");
+    const summary = document.getElementById("dod-summary");
+    list.innerHTML = "";
+
+    const story = (PROGRESS.stories || [])[0];
+    if (!story) {
+      titleEl.textContent = "—";
+      summary.textContent = "No story data in progress.json.";
+      return;
+    }
+
+    titleEl.textContent = story.id;
+    let passCount = 0;
+    (story.criteria || []).forEach((c) => {
+      if (c.passed) passCount++;
+      const row = document.createElement("div");
+      row.className = "dod-item";
+
+      const status = document.createElement("span");
+      status.className = "dod-status " + (c.passed ? "pass" : "fail");
+      status.textContent = c.passed ? "PASS" : "FAIL";
+
+      const text = document.createElement("span");
+      text.textContent = c.text;
+
+      row.appendChild(status);
+      row.appendChild(text);
+      list.appendChild(row);
+    });
+
+    const total = (story.criteria || []).length;
+    summary.textContent = passCount + " / " + total + " criteria passing";
+  }
+
   function renderRelease() {
     const today = new Date();
-    const releases = COMMAND_CENTER_DATA.releases;
+    const releases = PLAN.releases;
     let current = null;
     let next = null;
     for (const r of releases) {
@@ -702,8 +792,8 @@
     list.innerHTML = "";
 
     let connectedCount = 0;
-    COMMAND_CENTER_DATA.systems.forEach((name) => {
-      const status = mode === "sample" ? SAMPLE_SYSTEM_STATUS[name] : "not_connected";
+    PLAN.systems.forEach((name) => {
+      const status = mode === "sample" ? PLAN.sampleSystemStatus[name] : "not_connected";
       if (status === "connected") connectedCount++;
       const row = document.createElement("div");
       row.className = "system-row";
@@ -722,7 +812,7 @@
       list.appendChild(row);
     });
 
-    const total = COMMAND_CENTER_DATA.systems.length;
+    const total = PLAN.systems.length;
     factEl.textContent = connectedCount + " / " + total;
 
     if (mode === "sample") {
@@ -738,7 +828,7 @@
     const list = document.getElementById("guardrails-list");
     list.innerHTML = "";
     let enforcedCount = 0;
-    COMMAND_CENTER_DATA.guardrails.forEach((g) => {
+    PLAN.guardrails.forEach((g) => {
       if (g.enforced) enforcedCount++;
       const row = document.createElement("div");
       row.className = "guardrail";
@@ -753,13 +843,13 @@
         '<div class="guardrail-note">' + g.note + "</div>";
       list.appendChild(row);
     });
-    document.getElementById("fact-guardrails").textContent = enforcedCount + " / " + COMMAND_CENTER_DATA.guardrails.length;
+    document.getElementById("fact-guardrails").textContent = enforcedCount + " / " + PLAN.guardrails.length;
   }
 
   function renderCountdowns() {
     const today = new Date();
-    const buildEnd = parseDate(COMMAND_CENTER_DATA.meta.buildEnd);
-    const demoDay = parseDate(COMMAND_CENTER_DATA.meta.demoDay);
+    const buildEnd = parseDate(PLAN.meta.buildEnd);
+    const demoDay = parseDate(PLAN.meta.demoDay);
     const toBuild = daysBetween(today, buildEnd);
     const toDemo = daysBetween(today, demoDay);
 
@@ -773,7 +863,7 @@
   function renderTabs() {
     const strip = document.getElementById("tabs-strip");
     strip.innerHTML = "";
-    COMMAND_CENTER_DATA.tabs.forEach((t) => {
+    PLAN.tabs.forEach((t) => {
       const chip = document.createElement("div");
       chip.className = "tab-chip" + (t.status === "here" ? " here" : "");
       chip.innerHTML =
@@ -783,14 +873,24 @@
     });
   }
 
-  function init() {
-    applyMode();
+  async function init() {
     renderClock();
+    setInterval(renderClock, 1000);
+
+    try {
+      await loadData();
+    } catch (err) {
+      showLoadError(err);
+      return;
+    }
+
+    applyMode();
+    renderDataAge();
     renderRelease();
     renderGuardrails();
     renderCountdowns();
     renderTabs();
-    setInterval(renderClock, 1000);
+    renderDefinitionOfDone();
   }
 
   init();
