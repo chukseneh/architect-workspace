@@ -378,8 +378,15 @@
     gap: 10px;
   }
   .tab-chip {
+    appearance: none;
+    display: block;
+    width: 100%;
     border: 1px solid var(--border);
     background: var(--surface);
+    color: inherit;
+    font-family: var(--font-body);
+    text-align: left;
+    cursor: pointer;
     border-radius: 10px;
     padding: 12px 14px;
     font-size: 0.83rem;
@@ -397,6 +404,39 @@
     color: var(--text-faint);
   }
   .tab-chip.here .tab-chip-status { color: var(--accent); font-weight: 700; }
+  .tab-chip:hover { border-color: var(--accent); }
+
+  .panel-other { margin-top: 16px; }
+  .other-body { margin-top: 4px; color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; }
+
+  /* ---------- card drill-down (disclosure) ---------- */
+  .card[role="button"] { cursor: pointer; }
+  .card-toggle-hint {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .card[aria-expanded="true"] .card-toggle-hint { color: var(--accent); }
+  .card-detail {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+  }
+  .detail-row .detail-label { color: var(--text-muted); }
+  .detail-row .detail-value { font-family: var(--font-mono); text-align: right; }
 
   footer {
     margin-top: 40px;
@@ -480,9 +520,10 @@
 <div class="shell">
   <div class="load-error" id="load-error"></div>
 
+  <div class="panel-overview" id="panel-overview" role="tabpanel" tabindex="-1">
   <section class="hero">
     <h1 id="mission-heading">AI-powered operational intelligence for NHS: predicting pressure, identifying risk, and recommending interventions.</h1>
-    <p class="hero-mission">This is the Command Centre for that build — one page showing what is being built, what it is meant to move, and how far along it is. Nine tabs total; this is tab 1 of 9. The rest are scaffolded below and will be built out one at a time.</p>
+    <p class="hero-mission">This is the Command Centre for that build — one page showing what is being built, what it is meant to move, and how far along it is. Nine tabs total; this is tab 1 of 9. The rest open as placeholder panels below and will be built out one at a time.</p>
 
     <div class="facts-row">
       <div class="fact">
@@ -509,7 +550,7 @@
   </section>
 
   <section class="grid">
-    <div class="card">
+    <div class="card" id="card-release">
       <div class="card-head">
         <div>
           <div class="card-eyebrow">Release</div>
@@ -525,9 +566,12 @@
       </div>
 
       <div class="rail" id="release-rail"></div>
+
+      <div class="card-toggle-hint">Show detail</div>
+      <div class="card-detail" id="detail-release" hidden></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-systems">
       <div class="card-head">
         <div>
           <div class="card-eyebrow">Systems</div>
@@ -535,21 +579,31 @@
         </div>
         <span class="sample-chip">Sample</span>
       </div>
-      <div id="systems-list"></div>
       <div class="systems-summary" id="systems-summary">—</div>
+
+      <div class="card-toggle-hint">Show detail</div>
+      <div class="card-detail" id="detail-systems" hidden>
+        <span class="sample-chip">Sample</span>
+        <div id="systems-list"></div>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-guardrails">
       <div class="card-head">
         <div>
           <div class="card-eyebrow">Guardrails</div>
           <div class="card-title">Promises this system makes</div>
         </div>
       </div>
-      <div id="guardrails-list"></div>
+      <div class="systems-summary" id="guardrails-summary">—</div>
+
+      <div class="card-toggle-hint">Show detail</div>
+      <div class="card-detail" id="detail-guardrails" hidden>
+        <div id="guardrails-list"></div>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-timeline">
       <div class="card-head">
         <div>
           <div class="card-eyebrow">Timeline</div>
@@ -568,24 +622,35 @@
         <span class="countdown-label">Demo prep window</span>
         <span class="countdown-value mono">2026-10-01 → 2026-10-08</span>
       </div>
+
+      <div class="card-toggle-hint">Show detail</div>
+      <div class="card-detail" id="detail-timeline" hidden>
+        <p>This card has no further detail to give beyond the dates already shown above.</p>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-dod">
       <div class="card-head">
         <div>
           <div class="card-eyebrow">Definition of Done</div>
           <div class="card-title" id="dod-title">—</div>
         </div>
       </div>
-      <div id="dod-list"></div>
       <div class="systems-summary" id="dod-summary">—</div>
+
+      <div class="card-toggle-hint">Show detail</div>
+      <div class="card-detail" id="detail-dod" hidden>
+        <div id="dod-list"></div>
+      </div>
     </div>
   </section>
+  </div>
 
   <section class="tabs-section">
     <h2>All 9 tabs</h2>
-    <p class="tabs-hint">Overview is built. The other eight are scaffolded here as a map of what's coming next — none of them have content yet.</p>
-    <div class="tabs-strip" id="tabs-strip"></div>
+    <p class="tabs-hint">Overview is built and open below. Click a tab — or Tab to it and press Enter or Space — to open its panel.</p>
+    <div class="tabs-strip" id="tabs-strip" role="tablist" aria-label="Command Center sections"></div>
+    <div id="tab-panels"></div>
   </section>
 
   <footer>
@@ -638,6 +703,48 @@
     return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
   }
   function daysBetween(a, b) { return Math.round((dateOnly(b) - dateOnly(a)) / DAY_MS); }
+
+  function detailRow(label, value) {
+    return '<div class="detail-row"><span class="detail-label">' + label + "</span><span class=\"detail-value\">" + value + "</span></div>";
+  }
+
+  // Generic click/keyboard disclosure: makes `card` behave as a toggle
+  // button that shows/hides the element with id `detailId`. Enter and
+  // Space both activate it (native <button> semantics aren't available
+  // here because the whole card, not just a sub-control, is the target).
+  function setupDisclosure(card, detailId) {
+    const detail = document.getElementById(detailId);
+    const hint = card.querySelector(".card-toggle-hint");
+    if (!card || !detail) return;
+
+    card.setAttribute("role", "button");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-expanded", "false");
+    card.setAttribute("aria-controls", detailId);
+
+    function toggle() {
+      const willOpen = detail.hidden;
+      detail.hidden = !willOpen;
+      card.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      if (hint) hint.textContent = willOpen ? "Hide detail" : "Show detail";
+    }
+
+    card.addEventListener("click", toggle);
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  }
+
+  function setupOverviewDisclosures() {
+    setupDisclosure(document.getElementById("card-release"), "detail-release");
+    setupDisclosure(document.getElementById("card-systems"), "detail-systems");
+    setupDisclosure(document.getElementById("card-guardrails"), "detail-guardrails");
+    setupDisclosure(document.getElementById("card-timeline"), "detail-timeline");
+    setupDisclosure(document.getElementById("card-dod"), "detail-dod");
+  }
 
   function getMode() {
     return localStorage.getItem("cc_mode") === "sample" ? "sample" : "real";
@@ -735,6 +842,7 @@
     const storyCaptionEl = document.getElementById("release-story-caption");
     const releaseFact = document.getElementById("fact-release");
     const releaseFactSub = document.getElementById("fact-release-sub");
+    let shownRelease = null;
 
     if (current) {
       const start = parseDate(current.start);
@@ -748,6 +856,7 @@
       storyCaptionEl.textContent = current.stories + " " + (current.stories === 1 ? "story" : "stories");
       releaseFact.textContent = current.id.toUpperCase();
       releaseFactSub.textContent = "day " + dayIndex + " of " + totalDays;
+      shownRelease = current;
     } else if (next) {
       const start = parseDate(next.start);
       const untilStart = daysBetween(today, start);
@@ -758,6 +867,7 @@
       storyCaptionEl.textContent = next.stories + " " + (next.stories === 1 ? "story" : "stories");
       releaseFact.textContent = next.id.toUpperCase();
       releaseFactSub.textContent = "starts in " + untilStart + "d";
+      shownRelease = next;
     } else {
       const last = releases[releases.length - 1];
       nameEl.textContent = "All releases complete";
@@ -767,6 +877,18 @@
       storyCaptionEl.textContent = "—";
       releaseFact.textContent = "done";
       releaseFactSub.textContent = "all releases ended";
+      shownRelease = last;
+    }
+
+    const detailEl = document.getElementById("detail-release");
+    if (shownRelease) {
+      detailEl.innerHTML =
+        detailRow("Release", shownRelease.id.toUpperCase() + " — " + shownRelease.name) +
+        detailRow("Start date", fmtDate(parseDate(shownRelease.start))) +
+        detailRow("End date", fmtDate(parseDate(shownRelease.end))) +
+        detailRow("Stories", String(shownRelease.stories));
+    } else {
+      detailEl.innerHTML = "<p>No release data available in plan.json.</p>";
     }
 
     // Rail of all releases
@@ -844,6 +966,8 @@
       list.appendChild(row);
     });
     document.getElementById("fact-guardrails").textContent = enforcedCount + " / " + PLAN.guardrails.length;
+    document.getElementById("guardrails-summary").textContent =
+      enforcedCount + " / " + PLAN.guardrails.length + " guardrails enforced in code.";
   }
 
   function renderCountdowns() {
@@ -860,17 +984,99 @@
     document.getElementById("fact-demo").textContent = toDemo > 0 ? toDemo : toDemo === 0 ? "today" : "past";
   }
 
+  // One-sentence, honest description of what each not-yet-built tab will
+  // hold. This is roadmap copy, not project data — it is not read from
+  // .colaberry/plan.json because it describes intent, not a produced
+  // result. No numbers, statuses, or connections are stated here.
+  const TAB_DESCRIPTIONS = {
+    "Outcomes": "It will hold the patient and operational outcomes this system is meant to move.",
+    "Users & Use Case": "It will describe who uses this system and the use case it serves.",
+    "Guardrails": "It will hold the full guardrail detail and enforcement history behind the Guardrails card on Overview.",
+    "Systems": "It will hold per-system connection detail behind the Systems card on Overview.",
+    "Project Management": "It will hold the release plan, story tracking, and delivery status for this build.",
+    "AI Agents": "It will hold the AI agents this project runs and what each one does.",
+    "Knowledge Base": "It will hold the reference material and documentation backing this system.",
+    "Data Model": "It will hold the data model and schema this system is built on.",
+  };
+
   function renderTabs() {
     const strip = document.getElementById("tabs-strip");
+    const panels = document.getElementById("tab-panels");
     strip.innerHTML = "";
-    PLAN.tabs.forEach((t) => {
-      const chip = document.createElement("div");
-      chip.className = "tab-chip" + (t.status === "here" ? " here" : "");
-      chip.innerHTML =
+    panels.innerHTML = "";
+
+    PLAN.tabs.forEach((t, i) => {
+      const isOverview = t.status === "here";
+      const panelId = isOverview ? "panel-overview" : "panel-" + i;
+      const btnId = "tab-btn-" + i;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tab-chip";
+      btn.id = btnId;
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-controls", panelId);
+      btn.setAttribute("aria-selected", "false");
+      btn.innerHTML =
         '<div class="tab-chip-name">' + t.label + "</div>" +
-        '<div class="tab-chip-status">' + (t.status === "here" ? "You are here" : "Not built yet") + "</div>";
-      strip.appendChild(chip);
+        '<div class="tab-chip-status">' + (isOverview ? "Built" : "Not built yet") + "</div>";
+      btn.addEventListener("click", () => openTab(i));
+      strip.appendChild(btn);
+
+      if (isOverview) {
+        document.getElementById("panel-overview").setAttribute("aria-labelledby", btnId);
+      } else {
+        const desc = TAB_DESCRIPTIONS[t.label] || ("It will hold " + t.label + " content once that section is built.");
+        const detailId = "detail-tab-" + i;
+
+        const panel = document.createElement("div");
+        panel.className = "panel-other";
+        panel.id = panelId;
+        panel.setAttribute("role", "tabpanel");
+        panel.setAttribute("aria-labelledby", btnId);
+        panel.tabIndex = -1;
+        panel.hidden = true;
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = "card-tab-" + i;
+        card.innerHTML =
+          '<div class="card-head"><div>' +
+          '<div class="card-eyebrow">Not built yet</div>' +
+          '<div class="card-title">' + t.label + "</div>" +
+          "</div></div>" +
+          '<div class="card-toggle-hint">Show detail</div>' +
+          '<div class="card-detail" id="' + detailId + '" hidden>' +
+          '<p class="other-body">' + t.label + " is not built yet. " + desc + "</p>" +
+          "</div>";
+        panel.appendChild(card);
+        panels.appendChild(panel);
+
+        setupDisclosure(card, detailId);
+      }
     });
+
+    const initialIndex = PLAN.tabs.findIndex((t) => t.status === "here");
+    openTab(initialIndex >= 0 ? initialIndex : 0);
+  }
+
+  function openTab(index) {
+    const tabs = PLAN.tabs;
+    const t = tabs[index];
+    if (!t) return;
+
+    document.querySelectorAll("#tabs-strip .tab-chip").forEach((btn, i) => {
+      const selected = i === index;
+      btn.classList.toggle("here", selected);
+      btn.setAttribute("aria-selected", selected ? "true" : "false");
+    });
+
+    document.querySelectorAll("#panel-overview, #tab-panels > div").forEach((panel) => {
+      panel.hidden = true;
+    });
+
+    const panelId = t.status === "here" ? "panel-overview" : "panel-" + index;
+    document.getElementById(panelId).hidden = false;
   }
 
   async function init() {
@@ -891,6 +1097,7 @@
     renderCountdowns();
     renderTabs();
     renderDefinitionOfDone();
+    setupOverviewDisclosures();
   }
 
   init();
