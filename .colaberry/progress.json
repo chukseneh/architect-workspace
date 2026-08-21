@@ -13,16 +13,169 @@
           "passed": true
         },
         {
-          "text": "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
+          "text": "Given the Command Center, when any tab renders, then .colaberry/plan.json and .colaberry/progress.json are both committed in this repo and every tab reads its content from them at runtime rather than from hard-coded values.",
           "passed": true
         },
         {
-          "text": "Given .colaberry/manifest.json, when any tab is shown, then it displays how old the data is and warns when that age exceeds a week.",
+          "text": "Given the Command Center, when any tab is shown, then .colaberry/manifest.json is committed in this repo and every tab shows how old that data is and warns when the age exceeds a week.",
           "passed": true
         },
         {
-          "text": "Trust - no tab shows a number, a connection or a result the project has not actually produced.",
+          "text": "Trust — no tab shows a number, a connection or a result the project has not actually produced.",
           "passed": true
+        }
+      ]
+    },
+    {
+      "id": "STORY-001",
+      "criteria": [
+        {
+          "text": "Given data from GP practice management software, when ingested, then insights are generated successfully.",
+          "passed": false
+        },
+        {
+          "text": "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+          "passed": false
+        },
+        {
+          "text": "Trust: All data ingestion attempts are logged with timestamps and outcomes.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-002",
+      "criteria": [
+        {
+          "text": "Given data from NHS central data systems, when ingested, then insights are generated successfully.",
+          "passed": false
+        },
+        {
+          "text": "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+          "passed": false
+        },
+        {
+          "text": "Trust: All data ingestion attempts are logged with timestamps and outcomes.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-006",
+      "criteria": [
+        {
+          "text": "Given the AI decision engine is operational, when a decision-making process is initiated, then the engine should provide a decision output within 5 seconds.",
+          "passed": false
+        },
+        {
+          "text": "Given the AI decision engine is operational, when an invalid input is provided, then the engine should return an error message.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Given the AI decision engine is operational, when a decision is made, then the decision should be logged with a timestamp and decision parameters.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-007",
+      "criteria": [
+        {
+          "text": "Given operational data, when processed, then the dashboard displays current and forecasted metrics.",
+          "passed": false
+        },
+        {
+          "text": "Given incomplete data, when processed, then the dashboard flags it for review.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The dashboard logs all display activities and flags data issues.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-008",
+      "criteria": [
+        {
+          "text": "Given a scenario input, when processed, then the simulator forecasts the impact accurately.",
+          "passed": false
+        },
+        {
+          "text": "Given conflicting scenario inputs, when processed, then the simulator flags them for review.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The simulator logs all scenario activities and flags conflicts.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-009",
+      "criteria": [
+        {
+          "text": "Given uncertain data, when detected, then the system flags it for human review.",
+          "passed": false
+        },
+        {
+          "text": "Given certain data, when processed, then the system does not flag it.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all flagging activities and ensures human review.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-010",
+      "criteria": [
+        {
+          "text": "Given operational data, when processed, then the system completes decision-making in under 1 hour.",
+          "passed": false
+        },
+        {
+          "text": "Given high data volume, when processed, then the system maintains performance.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs performance metrics and ensures compliance with time constraints.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-011",
+      "criteria": [
+        {
+          "text": "Given a data ingestion process, when completed, then it is logged with a unique transaction ID.",
+          "passed": false
+        },
+        {
+          "text": "Given a prediction process, when completed, then it is logged with a unique transaction ID.",
+          "passed": false
+        },
+        {
+          "text": "Trust: All processes are idempotent and logs are immutable.",
+          "passed": false
+        }
+      ]
+    },
+    {
+      "id": "STORY-012",
+      "criteria": [
+        {
+          "text": "Given the AI intelligence layer is developed, when data is processed, then enhanced insights should be generated.",
+          "passed": false
+        },
+        {
+          "text": "Given the AI intelligence layer is developed, when no data is available, then the system should notify the user of missing data.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Given the AI intelligence layer is developed, when insights are generated, then the process should be logged with a timestamp and data source.",
+          "passed": false
         }
       ]
     }
