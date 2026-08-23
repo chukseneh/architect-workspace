@@ -1,0 +1,400 @@
+{
+  "schema_version": 2,
+  "project": "AI Healthcare Operations Command Centre",
+  "totals": {
+    "stories_total": 10,
+    "stories_verified": 1,
+    "stories_submitted": 0,
+    "stories_in_progress": 9,
+    "stories_not_started": 0,
+    "criteria_total": 32,
+    "criteria_passed": 5,
+    "points_awarded": 80
+  },
+  "stories": [
+    {
+      "id": "STORY-000",
+      "release": null,
+      "acceptance_total": 5,
+      "criteria": [
+        {
+          "text": "Given the Command Center, when it is opened, then every tab is reachable and every card drills down one level.",
+          "passed": true
+        },
+        {
+          "text": "Given sample mode, when any tab is shown, then the sample data is visibly labelled as sample.",
+          "passed": true
+        },
+        {
+          "text": "Given the Command Center, when any tab renders, then .colaberry/plan.json and .colaberry/progress.json are both committed in this repo and every tab reads its content from them at runtime rather than from hard-coded values.",
+          "passed": true
+        },
+        {
+          "text": "Given the Command Center, when any tab is shown, then .colaberry/manifest.json is committed in this repo and every tab shows how old that data is and warns when the age exceeds a week.",
+          "passed": true
+        },
+        {
+          "text": "Trust — no tab shows a number, a connection or a result the project has not actually produced.",
+          "passed": true
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "verified",
+        "criteria_passed": 5,
+        "criteria_total": 5,
+        "verified_at": "2026-08-19T03:35:25.434Z",
+        "commit_sha": "3ef3b5083c9bc43ad560b42e41668806f7180e46",
+        "commit_url": "https://github.com/chukseneh/architect-workspace/commit/3ef3b5083c9bc43ad560b42e41668806f7180e46",
+        "commit_at": "2026-08-19T00:51:15Z",
+        "points_awarded": 80,
+        "outstanding": []
+      }
+    },
+    {
+      "id": "STORY-001",
+      "release": "r0",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given data from GP practice management software, when ingested, then insights are generated successfully.",
+          "passed": false
+        },
+        {
+          "text": "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+          "passed": false
+        },
+        {
+          "text": "Trust: All data ingestion attempts are logged with timestamps and outcomes.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given data from GP practice management software, when ingested, then insights are generated successfully.",
+          "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+          "Trust: All data ingestion attempts are logged with timestamps and outcomes."
+        ]
+      }
+    },
+    {
+      "id": "STORY-002",
+      "release": "r0",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given data from NHS central data systems, when ingested, then insights are generated successfully.",
+          "passed": false
+        },
+        {
+          "text": "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+          "passed": false
+        },
+        {
+          "text": "Trust: All data ingestion attempts are logged with timestamps and outcomes.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given data from NHS central data systems, when ingested, then insights are generated successfully.",
+          "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+          "Trust: All data ingestion attempts are logged with timestamps and outcomes."
+        ]
+      }
+    },
+    {
+      "id": "STORY-006",
+      "release": "r2",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given the AI decision engine is operational, when a decision-making process is initiated, then the engine should provide a decision output within 5 seconds.",
+          "passed": false
+        },
+        {
+          "text": "Given the AI decision engine is operational, when an invalid input is provided, then the engine should return an error message.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Given the AI decision engine is operational, when a decision is made, then the decision should be logged with a timestamp and decision parameters.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given the AI decision engine is operational, when a decision-making process is initiated, then the engine should provide a decision output within 5 seconds.",
+          "Given the AI decision engine is operational, when an invalid input is provided, then the engine should return an error message.",
+          "Trust: Given the AI decision engine is operational, when a decision is made, then the decision should be logged with a timestamp and decision parameters."
+        ]
+      }
+    },
+    {
+      "id": "STORY-007",
+      "release": "r2",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given operational data, when processed, then the dashboard displays current and forecasted metrics.",
+          "passed": false
+        },
+        {
+          "text": "Given incomplete data, when processed, then the dashboard flags it for review.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The dashboard logs all display activities and flags data issues.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given operational data, when processed, then the dashboard displays current and forecasted metrics.",
+          "Given incomplete data, when processed, then the dashboard flags it for review.",
+          "Trust: The dashboard logs all display activities and flags data issues."
+        ]
+      }
+    },
+    {
+      "id": "STORY-008",
+      "release": "r3",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given a scenario input, when processed, then the simulator forecasts the impact accurately.",
+          "passed": false
+        },
+        {
+          "text": "Given conflicting scenario inputs, when processed, then the simulator flags them for review.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The simulator logs all scenario activities and flags conflicts.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given a scenario input, when processed, then the simulator forecasts the impact accurately.",
+          "Given conflicting scenario inputs, when processed, then the simulator flags them for review.",
+          "Trust: The simulator logs all scenario activities and flags conflicts."
+        ]
+      }
+    },
+    {
+      "id": "STORY-009",
+      "release": "r3",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given uncertain data, when detected, then the system flags it for human review.",
+          "passed": false
+        },
+        {
+          "text": "Given certain data, when processed, then the system does not flag it.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all flagging activities and ensures human review.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given uncertain data, when detected, then the system flags it for human review.",
+          "Given certain data, when processed, then the system does not flag it.",
+          "Trust: The system logs all flagging activities and ensures human review."
+        ]
+      }
+    },
+    {
+      "id": "STORY-010",
+      "release": "r4",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given operational data, when processed, then the system completes decision-making in under 1 hour.",
+          "passed": false
+        },
+        {
+          "text": "Given high data volume, when processed, then the system maintains performance.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs performance metrics and ensures compliance with time constraints.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given operational data, when processed, then the system completes decision-making in under 1 hour.",
+          "Given high data volume, when processed, then the system maintains performance.",
+          "Trust: The system logs performance metrics and ensures compliance with time constraints."
+        ]
+      }
+    },
+    {
+      "id": "STORY-011",
+      "release": "r0",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given a data ingestion process, when completed, then it is logged with a unique transaction ID.",
+          "passed": false
+        },
+        {
+          "text": "Given a prediction process, when completed, then it is logged with a unique transaction ID.",
+          "passed": false
+        },
+        {
+          "text": "Trust: All processes are idempotent and logs are immutable.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given a data ingestion process, when completed, then it is logged with a unique transaction ID.",
+          "Given a prediction process, when completed, then it is logged with a unique transaction ID.",
+          "Trust: All processes are idempotent and logs are immutable."
+        ]
+      }
+    },
+    {
+      "id": "STORY-012",
+      "release": "r1",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given the AI intelligence layer is developed, when data is processed, then enhanced insights should be generated.",
+          "passed": false
+        },
+        {
+          "text": "Given the AI intelligence layer is developed, when no data is available, then the system should notify the user of missing data.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Given the AI intelligence layer is developed, when insights are generated, then the process should be logged with a timestamp and data source.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given the AI intelligence layer is developed, when data is processed, then enhanced insights should be generated.",
+          "Given the AI intelligence layer is developed, when no data is available, then the system should notify the user of missing data.",
+          "Trust: Given the AI intelligence layer is developed, when insights are generated, then the process should be logged with a timestamp and data source."
+        ]
+      }
+    }
+  ]
+}
