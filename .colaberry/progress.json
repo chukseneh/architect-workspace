@@ -31,16 +31,30 @@
       "criteria": [
         {
           "text": "Given data from GP practice management software, when ingested, then insights are generated successfully.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: All data ingestion attempts are logged with timestamps and outcomes.",
-          "passed": false
+          "passed": true
         }
+      ],
+      "files_touched": [
+        "backend/package.json",
+        "backend/tsconfig.json",
+        "backend/src/services/gpPms/types.ts",
+        "backend/src/services/gpPms/mockGpPmsClient.ts",
+        "backend/src/services/gpPms/ingestGpPmsRecords.ts",
+        "backend/src/services/gpPms/generateInsights.ts",
+        "backend/src/services/gpPms/analyzeGpPmsData.ts"
+      ],
+      "tests_added": [
+        "backend/src/services/gpPms/ingestGpPmsRecords.test.ts",
+        "backend/src/services/gpPms/generateInsights.test.ts",
+        "backend/src/services/gpPms/analyzeGpPmsData.test.ts"
       ]
     },
     {
