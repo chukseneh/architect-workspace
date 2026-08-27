@@ -125,3 +125,10 @@
   - What changed: User attached `progress (1).json` and asked to replace `.colaberry/progress.json` with it verbatim. Read the existing tracked file, wrote the attached content over it (adds `project`, `totals`, `release`, and full per-story `verification` blocks that the previous version lacked), staged only that one file, and committed.
   - Verification: `git diff --stat .colaberry/progress.json` before commit showed exactly the expected insertions (222 insertions, 11 deletions) with no unrelated files staged; commit `8380cfd` pushed to `origin/main` successfully.
   - Notes: Catch-up entry written retroactively per CLAUDE.md's catch-up rule — the commit itself predates this session minting a Session ID and writing PROGRESS.md as it went.
+
+- [x] Add scripts/syncGithubWebhook.sh (GitHub webhook create/update helper)
+  - Date: 2026-08-28
+  - Session: CC-20260827-t4qk
+  - What changed: User asked to commit a one-off shell snippet that creates/updates the `enterprise.colaberry.ai` push webhook via `gh api`, but the snippet hardcoded the webhook secret inline. Per CLAUDE.md's Secrets Management rules ("No secrets in source code. No secrets in commit history."), refused to commit it as-is, flagged the embedded secret as compromised and needing rotation regardless, and rewrote it as `scripts/syncGithubWebhook.sh`: same create-or-update logic, but reads the secret from `$COLABERRY_WEBHOOK_SECRET` and fails loudly with a clear message if that env var is unset, instead of embedding the value.
+  - Verification: Ran the repo's `secret-scanner` skill against the new file (`node utils/runScan.js scripts/syncGithubWebhook.sh`) — 0 findings, clean. `bash -n scripts/syncGithubWebhook.sh` syntax-checks clean.
+  - Notes: User confirmed via clarifying question that the script should live at `scripts/syncGithubWebhook.sh` (repo-root ops script, per Folder Responsibilities) rather than `backend/src/scripts/` or not being committed at all.
