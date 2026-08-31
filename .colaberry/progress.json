@@ -3,13 +3,13 @@
   "project": "AI Healthcare Operations Command Centre",
   "totals": {
     "stories_total": 10,
-    "stories_verified": 2,
+    "stories_verified": 3,
     "stories_submitted": 0,
-    "stories_in_progress": 8,
+    "stories_in_progress": 7,
     "stories_not_started": 0,
     "criteria_total": 32,
-    "criteria_passed": 8,
-    "points_awarded": 160
+    "criteria_passed": 11,
+    "points_awarded": 240
   },
   "stories": [
     {
@@ -138,19 +138,15 @@
       "notes": null,
       "updated_at": null,
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
-        "commit_sha": null,
-        "commit_url": null,
-        "commit_at": null,
-        "points_awarded": null,
-        "outstanding": [
-          "Given data from NHS central data systems, when ingested, then insights are generated successfully.",
-          "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
-          "Trust: All data ingestion attempts are logged with timestamps and outcomes."
-        ]
+        "verified_at": "2026-08-31T15:07:30+01:00",
+        "commit_sha": "0af10035fceeccc3a15514f20a85825c0010cb04",
+        "commit_url": "https://github.com/chukseneh/architect-workspace/commit/0af10035fceeccc3a15514f20a85825c0010cb04",
+        "commit_at": "2026-08-31T15:07:30+01:00",
+        "points_awarded": 80,
+        "outstanding": []
       }
     },
     {
