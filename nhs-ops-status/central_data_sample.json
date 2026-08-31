@@ -1,0 +1,74 @@
+[
+  {
+    "icb_name": "NHS Greater Manchester ICB",
+    "region": "North West",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 18.4,
+    "discharge_delay_beddays": 142,
+    "critical_care_occupancy_pct": 91,
+    "last_updated": "2026-08-27T06:00:00Z"
+  },
+  {
+    "icb_name": "NHS South East London ICB",
+    "region": "London",
+    "opel_level": 4,
+    "ambulance_handover_over_60min_pct": 27.1,
+    "discharge_delay_beddays": 210,
+    "critical_care_occupancy_pct": 97,
+    "last_updated": "2026-08-27T07:00:00Z"
+  },
+  {
+    "icb_name": "NHS West Yorkshire ICB",
+    "region": "Yorkshire",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 9.8,
+    "discharge_delay_beddays": 76,
+    "critical_care_occupancy_pct": 82,
+    "last_updated": "2026-08-27T05:30:00Z"
+  },
+  {
+    "icb_name": "NHS Birmingham and Solihull ICB",
+    "region": "West Midlands",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 15.2,
+    "discharge_delay_beddays": 128,
+    "critical_care_occupancy_pct": 88,
+    "last_updated": "2026-08-27T08:00:00Z"
+  },
+  {
+    "icb_name": "NHS Bristol, North Somerset and South Gloucestershire ICB",
+    "region": "South West",
+    "opel_level": 1,
+    "ambulance_handover_over_60min_pct": 4.1,
+    "discharge_delay_beddays": 39,
+    "critical_care_occupancy_pct": 71,
+    "last_updated": "2026-08-27T04:45:00Z"
+  },
+  {
+    "icb_name": "NHS North East and North Cumbria ICB",
+    "region": "North East",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 7.6,
+    "discharge_delay_beddays": 58,
+    "critical_care_occupancy_pct": 79,
+    "last_updated": "2026-08-27T06:30:00Z"
+  },
+  {
+    "icb_name": "NHS Cheshire and Merseyside ICB",
+    "region": "North West",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 16.9,
+    "discharge_delay_beddays": 119,
+    "critical_care_occupancy_pct": 90,
+    "last_updated": "2026-08-27T09:00:00Z"
+  },
+  {
+    "icb_name": "NHS East Midlands ICB",
+    "region": "East Midlands",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 10.3,
+    "discharge_delay_beddays": 64,
+    "critical_care_occupancy_pct": 80,
+    "last_updated": "2026-08-27T05:00:00Z"
+  }
+]

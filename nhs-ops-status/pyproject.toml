@@ -1,0 +1,18 @@
+[project]
+name = "nhs-ops-status"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Chukwuemeka Eneh", email = "chukseneh@outlook.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=2.1.0",
+]
+
+[project.scripts]
+nhs-ops-status = "nhs_ops_status:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

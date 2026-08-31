@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "nhs-ops-status": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "C:\\Users\\abc\\Documents\\AI-Project\\nhs-ops-status",
+        "python",
+        "server.py"
+      ]
+    }
+  }
+}

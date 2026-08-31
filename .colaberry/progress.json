@@ -107,19 +107,34 @@
       "criteria": [
         {
           "text": "Given data from NHS central data systems, when ingested, then insights are generated successfully.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: All data ingestion attempts are logged with timestamps and outcomes.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
+      "files_touched": [
+        "backend/package.json",
+        "backend/src/services/nhsCentralData/types.ts",
+        "backend/src/services/nhsCentralData/mcpNhsCentralDataClient.ts",
+        "backend/src/services/nhsCentralData/fakeNhsCentralDataClient.ts",
+        "backend/src/services/nhsCentralData/ingestNhsCentralData.ts",
+        "backend/src/services/nhsCentralData/generateNhsInsights.ts",
+        "backend/src/services/nhsCentralData/analyzeNhsCentralData.ts",
+        "nhs-ops-status/server.py",
+        ".mcp.json"
+      ],
+      "tests_added": [
+        "backend/src/services/nhsCentralData/ingestNhsCentralData.test.ts",
+        "backend/src/services/nhsCentralData/generateNhsInsights.test.ts",
+        "backend/src/services/nhsCentralData/analyzeNhsCentralData.test.ts",
+        "backend/src/services/nhsCentralData/mcpNhsCentralDataClient.integration.test.ts"
+      ],
       "notes": null,
       "updated_at": null,
       "verification": {
