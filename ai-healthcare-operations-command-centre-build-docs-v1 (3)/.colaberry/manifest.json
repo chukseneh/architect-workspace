@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-09-01T02:07:36.963Z",
+  "plan_version": 1,
+  "plan_sha256": "150cd49717a614d0958681146c8777673148c5fdfe3d8bd0eded660d280238ba",
+  "correlation_id": "8a3ca58b-16b1-409c-b7bd-251225aebe94",
+  "files": [
+    {
+      "path": "docs/REQUIREMENTS.md",
+      "sha256": "f87c4b3638db949b4622a00595da9ab96dfb7809bf4547559f454fa928b01a49"
+    },
+    {
+      "path": "docs/STORIES.md",
+      "sha256": "0283747186cbcfe59a73509004eb833854a14ec8f4a32d6d4b3e8db95e6b2e5a"
+    },
+    {
+      "path": "docs/TRACEABILITY.md",
+      "sha256": "f50691906d999d20ce07a23f6d8828aba7cf634f13a6c0df0e598498fe47cce9"
+    },
+    {
+      "path": "docs/DATA_CONTRACT.md",
+      "sha256": "d56e89edcfe36725945d961cf3479b646507d1fa855bba0dcdfff3f8f8a658b0"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "1838848bed35c5df6fa8c90afb806056c0ed59868d6c1196412d4fb8fb9f3c85"
+    },
+    {
+      "path": "docs/stories/STORY-001.md",
+      "sha256": "ac0665d033f4cb665828aea545469d1861ece9c4e24c86a71c54c141e044bc2b"
+    },
+    {
+      "path": "docs/stories/STORY-002.md",
+      "sha256": "2bb8cce5dbc985d557f32db83325e7a9a7073341873b092ac4b2aad843545d2e"
+    },
+    {
+      "path": "docs/stories/STORY-006.md",
+      "sha256": "43076c31ae67d9f4b87da3f5a7d2974db54db37bf410417d9173978c8985c807"
+    },
+    {
+      "path": "docs/stories/STORY-007.md",
+      "sha256": "87db9ff7214623b04d68d1927e88d1d134a677aa734fe5ec7f2ca2bc8a6e2c1d"
+    },
+    {
+      "path": "docs/stories/STORY-008.md",
+      "sha256": "98fab98d174f37d7da4d97c93957897714b41152469c3636343b506485c33c5e"
+    },
+    {
+      "path": "docs/stories/STORY-009.md",
+      "sha256": "851dd4d7f12f65696c3bedbef15b83427d27fa3e06f7aab3bf87aac091397ff1"
+    },
+    {
+      "path": "docs/stories/STORY-010.md",
+      "sha256": "bd9ab9d89ec438cfb7eaf98e06c5167f745a84bd9547459993ffaaf551d56693"
+    },
+    {
+      "path": "docs/stories/STORY-011.md",
+      "sha256": "50c29e1f2731cbf7a4e9dba0efec7a9c2950a556c40834e08f065e60a9e35ff0"
+    },
+    {
+      "path": "docs/stories/STORY-012.md",
+      "sha256": "d147fc0e9fbcd0a8ed065a4d26805d54e5a7368ee7c77f3b1f8fef9af5219287"
+    },
+    {
+      "path": "docs/stories/STORY-000.md",
+      "sha256": "5eb95d6579f83db17959b7cc7c8162ea4da30d5ce05ce7b863f7c55fc6d2238d"
+    },
+    {
+      "path": ".colaberry/plan.json",
+      "sha256": "87d96667150d01521687f9a0ba730136ac152433799561badcbcf8d29f28bc62"
+    },
+    {
+      "path": ".colaberry/progress.json",
+      "sha256": "46a556116a8e92ca3283f79ea964ddb3c1b68da407c073e572a1ee63203477c5"
+    },
+    {
+      "path": ".colaberry/profile.json",
+      "sha256": "23a23259ef9033421479380c44c0c928276bb7066f34ef0fee30bb7661a46e88"
+    }
+  ]
+}

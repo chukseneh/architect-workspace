@@ -1,0 +1,544 @@
+{
+  "schema_version": 2,
+  "project_name": "AI Healthcare Operations Command Centre",
+  "descriptor": "An AI-powered operational intelligence platform for NHS to predict pressure, identify risks, and recommend interventions.",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from GP practice management software.",
+      "fulfilled_by": [
+        "STORY-001"
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from NHS central data systems.",
+      "fulfilled_by": [
+        "STORY-002"
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from the Ambulance service database.",
+      "fulfilled_by": [
+        "STORY-012"
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from the Community care management system.",
+      "fulfilled_by": [
+        "STORY-012"
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from Staffing rotas.",
+      "fulfilled_by": []
+    },
+    {
+      "id": "REQ-006",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from Emergency department records.",
+      "fulfilled_by": []
+    },
+    {
+      "id": "REQ-007",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from the 111 database.",
+      "fulfilled_by": []
+    },
+    {
+      "id": "REQ-008",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from Discharge records.",
+      "fulfilled_by": []
+    },
+    {
+      "id": "REQ-009",
+      "kind": "CONSTRAINT",
+      "cluster": "Data Ingestion",
+      "priority": "must",
+      "statement": "The system must ingest data from the Hospital bed occupancy record.",
+      "fulfilled_by": []
+    },
+    {
+      "id": "REQ-010",
+      "kind": "FUNC",
+      "cluster": "AI Intelligence",
+      "priority": "must",
+      "statement": "The system must predict operational pressure within the next 4-24 hours.",
+      "fulfilled_by": [
+        "STORY-001",
+        "STORY-002"
+      ]
+    },
+    {
+      "id": "REQ-011",
+      "kind": "FUNC",
+      "cluster": "AI Decision Engine",
+      "priority": "must",
+      "statement": "The system must provide recommendations for interventions to manage demand and capacity.",
+      "fulfilled_by": [
+        "STORY-006"
+      ]
+    },
+    {
+      "id": "REQ-012",
+      "kind": "FUNC",
+      "cluster": "Executive Dashboard",
+      "priority": "must",
+      "statement": "The system must provide a concise briefing for the operational leadership team.",
+      "fulfilled_by": [
+        "STORY-007"
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "kind": "SAFE",
+      "cluster": "AI Governance",
+      "priority": "must",
+      "statement": "The system must flag data uncertainties for human review.",
+      "fulfilled_by": [
+        "STORY-009"
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "kind": "NFR",
+      "cluster": "Performance",
+      "priority": "must",
+      "statement": "The system must reduce operational decision-making time from 3 hours to under 1 hour.",
+      "fulfilled_by": [
+        "STORY-010"
+      ]
+    },
+    {
+      "id": "REQ-015",
+      "kind": "FUNC",
+      "cluster": "AI What-If Simulator",
+      "priority": "should",
+      "statement": "The system must provide an AI What-If Simulator for scenario planning.",
+      "fulfilled_by": [
+        "STORY-008"
+      ]
+    },
+    {
+      "id": "REQ-016",
+      "kind": "FUNC",
+      "cluster": "Executive Dashboard",
+      "priority": "must",
+      "statement": "The system must display current and forecasted operational metrics on a dashboard.",
+      "fulfilled_by": [
+        "STORY-007"
+      ]
+    },
+    {
+      "id": "REQ-017",
+      "kind": "CONSTRAINT",
+      "cluster": "Development Environment",
+      "priority": "must",
+      "statement": "The system must use Claude Code for AI development.",
+      "fulfilled_by": []
+    },
+    {
+      "id": "REQ-018",
+      "kind": "SAFE",
+      "cluster": "AI Governance",
+      "priority": "must",
+      "statement": "The system must not make autonomous clinical decisions.",
+      "fulfilled_by": [
+        "STORY-011"
+      ]
+    }
+  ],
+  "releases": [
+    {
+      "key": "r0",
+      "demo": "Show data ingestion from key sources and a basic prediction of operational pressure.",
+      "goal": "Establish data ingestion and basic prediction capabilities.",
+      "name": "Initial Data Ingestion and Basic Prediction",
+      "week_end": 1,
+      "week_start": 1,
+      "story_ids": [
+        "STORY-001",
+        "STORY-002",
+        "STORY-011"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r1",
+      "demo": "Demonstrate predictions and risk assessments by specialized agents.",
+      "goal": "Develop specialized AI agents for prediction and risk assessment.",
+      "name": "AI Intelligence Layer",
+      "week_end": 2,
+      "week_start": 2,
+      "story_ids": [
+        "STORY-012"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r2",
+      "demo": "Show decision recommendations and dashboard displaying operational metrics.",
+      "goal": "Implement decision engine and executive dashboard.",
+      "name": "AI Decision Engine and Dashboard",
+      "week_end": 3,
+      "week_start": 3,
+      "story_ids": [
+        "STORY-006",
+        "STORY-007"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r3",
+      "demo": "Demonstrate scenario planning and data uncertainty flagging.",
+      "goal": "Introduce scenario planning and governance features.",
+      "name": "AI What-If Simulator and Governance",
+      "week_end": 4,
+      "week_start": 4,
+      "story_ids": [
+        "STORY-008",
+        "STORY-009"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r4",
+      "demo": "Show reduced decision-making time and full system integration.",
+      "goal": "Optimize performance and integrate all components.",
+      "name": "Performance Optimization and Final Integration",
+      "week_end": 6,
+      "week_start": 5,
+      "story_ids": [
+        "STORY-010"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    }
+  ],
+  "stories": [
+    {
+      "id": "STORY-001",
+      "title": "Enable data-driven insights from GP practice management software",
+      "release": "r0",
+      "fulfills": [
+        "REQ-001",
+        "REQ-010"
+      ],
+      "narrative": "As a healthcare analyst, I want to ingest and analyze data from GP practice management software, so that I can derive actionable insights.",
+      "acceptance": [
+        "Given data from GP practice management software, when ingested, then insights are generated successfully.",
+        "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+        "Trust: All data ingestion attempts are logged with timestamps and outcomes."
+      ],
+      "blocked_by": [],
+      "owner_agent": "Data Integration Team",
+      "failure_paths": [
+        "API connection failure",
+        "Data format mismatch",
+        "Data ingestion timeout"
+      ],
+      "task_guidance": "Connect to the GP practice management software API, ingest data into the analytics platform, and ensure logging of all data transactions.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-002",
+      "title": "Enable data-driven insights from NHS central data systems",
+      "release": "r0",
+      "fulfills": [
+        "REQ-002",
+        "REQ-010"
+      ],
+      "narrative": "As a healthcare analyst, I want to ingest and analyze data from NHS central data systems, so that I can derive actionable insights.",
+      "acceptance": [
+        "Given data from NHS central data systems, when ingested, then insights are generated successfully.",
+        "Given data ingestion fails, when retrying, then the system logs the failure and retries.",
+        "Trust: All data ingestion attempts are logged with timestamps and outcomes."
+      ],
+      "blocked_by": [],
+      "owner_agent": "Data Integration Team",
+      "failure_paths": [
+        "API connection failure",
+        "Data format mismatch",
+        "Data ingestion timeout"
+      ],
+      "task_guidance": "Connect to the NHS central data systems API, ingest data into the analytics platform, and ensure logging of all data transactions.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-006",
+      "title": "Implement AI Decision Engine",
+      "release": "r2",
+      "fulfills": [
+        "REQ-011"
+      ],
+      "narrative": "As a data analyst, I want an AI decision engine, so that I can automate decision-making processes.",
+      "acceptance": [
+        "Given the AI decision engine is operational, when a decision-making process is initiated, then the engine should provide a decision output within 5 seconds.",
+        "Given the AI decision engine is operational, when an invalid input is provided, then the engine should return an error message.",
+        "Trust: Given the AI decision engine is operational, when a decision is made, then the decision should be logged with a timestamp and decision parameters."
+      ],
+      "blocked_by": [
+        "STORY-007"
+      ],
+      "owner_agent": "AI Development Team",
+      "failure_paths": [
+        "Engine fails to start",
+        "Invalid input format",
+        "Decision output exceeds time limit"
+      ],
+      "task_guidance": "Implement the decision engine using the specified AI framework. Ensure integration with the data sources and logging mechanisms.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-007",
+      "title": "Develop Executive Command Dashboard",
+      "release": "r2",
+      "fulfills": [
+        "REQ-012",
+        "REQ-016"
+      ],
+      "narrative": "As a UI/UX designer, I want to develop an Executive Command Dashboard, so that NHS executives can view operational metrics.",
+      "acceptance": [
+        "Given operational data, when processed, then the dashboard displays current and forecasted metrics.",
+        "Given incomplete data, when processed, then the dashboard flags it for review.",
+        "Trust: The dashboard logs all display activities and flags data issues."
+      ],
+      "blocked_by": [
+        "STORY-006"
+      ],
+      "owner_agent": "UI/UX Designer",
+      "failure_paths": [
+        "UI rendering failure",
+        "Data display inaccuracy",
+        "Dashboard loading error"
+      ],
+      "task_guidance": "Design and implement a dashboard using Claude Code to display operational metrics and forecasts for NHS executives.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-008",
+      "title": "Implement AI What-If Simulator",
+      "release": "r3",
+      "fulfills": [
+        "REQ-015"
+      ],
+      "narrative": "As an AI architect, I want to implement an AI What-If Simulator, so that NHS executives can perform scenario planning.",
+      "acceptance": [
+        "Given a scenario input, when processed, then the simulator forecasts the impact accurately.",
+        "Given conflicting scenario inputs, when processed, then the simulator flags them for review.",
+        "Trust: The simulator logs all scenario activities and flags conflicts."
+      ],
+      "blocked_by": [
+        "STORY-007"
+      ],
+      "owner_agent": "AI Architect",
+      "failure_paths": [
+        "Simulation processing failure",
+        "Scenario input error",
+        "Impact forecasting inaccuracy"
+      ],
+      "task_guidance": "Develop the What-If Simulator using Claude Code to model potential impacts of different scenarios on operational metrics.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-009",
+      "title": "Implement Data Uncertainty Flagging",
+      "release": "r3",
+      "fulfills": [
+        "REQ-013"
+      ],
+      "narrative": "As a data engineer, I want to implement data uncertainty flagging, so that uncertain data is reviewed by humans.",
+      "acceptance": [
+        "Given uncertain data, when detected, then the system flags it for human review.",
+        "Given certain data, when processed, then the system does not flag it.",
+        "Trust: The system logs all flagging activities and ensures human review."
+      ],
+      "blocked_by": [
+        "STORY-007"
+      ],
+      "owner_agent": "Data Engineer",
+      "failure_paths": [
+        "Flagging mechanism failure",
+        "False positive flagging",
+        "Data processing delay"
+      ],
+      "task_guidance": "Develop a mechanism using Claude Code to detect and flag uncertain data for human review.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-010",
+      "title": "Optimize Performance for Decision-Making",
+      "release": "r4",
+      "fulfills": [
+        "REQ-014"
+      ],
+      "narrative": "As a performance engineer, I want to optimize the system's performance, so that decision-making time is reduced to under 1 hour.",
+      "acceptance": [
+        "Given operational data, when processed, then the system completes decision-making in under 1 hour.",
+        "Given high data volume, when processed, then the system maintains performance.",
+        "Trust: The system logs performance metrics and ensures compliance with time constraints."
+      ],
+      "blocked_by": [
+        "STORY-009"
+      ],
+      "owner_agent": "Performance Engineer",
+      "failure_paths": [
+        "Performance degradation",
+        "Data processing bottleneck",
+        "Algorithm inefficiency"
+      ],
+      "task_guidance": "Optimize data processing and decision-making algorithms using Claude Code to meet performance requirements.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-011",
+      "title": "Establish trust spine for data ingestion and prediction",
+      "release": "r0",
+      "fulfills": [
+        "REQ-018"
+      ],
+      "narrative": "As a system auditor, I want to ensure all data ingestion and prediction processes are logged and idempotent, so that the system's operations can be audited and verified.",
+      "acceptance": [
+        "Given a data ingestion process, when completed, then it is logged with a unique transaction ID.",
+        "Given a prediction process, when completed, then it is logged with a unique transaction ID.",
+        "Trust: All processes are idempotent and logs are immutable."
+      ],
+      "blocked_by": [],
+      "owner_agent": "Compliance Team",
+      "failure_paths": [
+        "Logging failure",
+        "Duplicate transaction IDs",
+        "Log tampering"
+      ],
+      "task_guidance": "Implement logging for all data ingestion and prediction processes, ensuring each process is idempotent and logs are stored in an immutable format.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-012",
+      "title": "Develop AI Intelligence Layer",
+      "release": "r1",
+      "fulfills": [
+        "REQ-003",
+        "REQ-004"
+      ],
+      "narrative": "As a data scientist, I want an AI intelligence layer, so that I can enhance data insights with AI capabilities.",
+      "acceptance": [
+        "Given the AI intelligence layer is developed, when data is processed, then enhanced insights should be generated.",
+        "Given the AI intelligence layer is developed, when no data is available, then the system should notify the user of missing data.",
+        "Trust: Given the AI intelligence layer is developed, when insights are generated, then the process should be logged with a timestamp and data source."
+      ],
+      "blocked_by": [],
+      "owner_agent": "AI Development Team",
+      "failure_paths": [
+        "Data processing error",
+        "No data available",
+        "Insight generation failure"
+      ],
+      "task_guidance": "Develop the intelligence layer using the specified AI tools. Ensure it integrates with existing data systems and logs all processes.",
+      "due_on": null,
+      "due_baseline_on": null
+    }
+  ],
+  "agents": [],
+  "project": {
+    "name": "AI Healthcare Operations Command Centre",
+    "descriptor": "An AI-powered operational intelligence platform for NHS to predict pressure, identify risks, and recommend interventions.",
+    "repo_url": null,
+    "plan_version": 1,
+    "plan_sha256": "150cd49717a614d0958681146c8777673148c5fdfe3d8bd0eded660d280238ba"
+  },
+  "schedule": null,
+  "derived": {
+    "measures": [
+      {
+        "id": "REQ-014",
+        "statement": "The system must reduce operational decision-making time from 3 hours to under 1 hour."
+      }
+    ],
+    "guardrails": [
+      {
+        "id": "REQ-013",
+        "statement": "The system must flag data uncertainties for human review."
+      },
+      {
+        "id": "REQ-018",
+        "statement": "The system must not make autonomous clinical decisions."
+      }
+    ],
+    "systems": [
+      "NHS",
+      "Ambulance",
+      "Community",
+      "Staffing",
+      "Emergency",
+      "Discharge",
+      "Hospital"
+    ],
+    "roles": [
+      "healthcare analyst",
+      "data analyst",
+      "UI/UX designer",
+      "AI architect",
+      "data engineer",
+      "performance engineer",
+      "system auditor",
+      "data scientist"
+    ],
+    "counts": {
+      "requirements_total": 18,
+      "requirements_by_kind": {
+        "CONSTRAINT": 10,
+        "FUNC": 5,
+        "NFR": 1,
+        "SAFE": 2
+      },
+      "stories_total": 9,
+      "releases_total": 5,
+      "agents_total": 0,
+      "failure_paths_total": 24,
+      "agents_by_autonomy": {}
+    }
+  }
+}
