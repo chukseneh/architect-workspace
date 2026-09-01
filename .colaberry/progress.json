@@ -35,7 +35,7 @@
         },
         {
           "text": "Trust â no tab shows a number, a connection or a result the project has not actually produced.",
-          "passed": true
+          "passed": false
         }
       ],
       "files_touched": [],
@@ -141,10 +141,10 @@
         "state": "verified",
         "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": "2026-08-31T15:07:30+01:00",
+        "verified_at": "2026-08-31T14:08:37.639Z",
         "commit_sha": "0af10035fceeccc3a15514f20a85825c0010cb04",
         "commit_url": "https://github.com/chukseneh/architect-workspace/commit/0af10035fceeccc3a15514f20a85825c0010cb04",
-        "commit_at": "2026-08-31T15:07:30+01:00",
+        "commit_at": "2026-08-31T14:07:30Z",
         "points_awarded": 80,
         "outstanding": []
       }
