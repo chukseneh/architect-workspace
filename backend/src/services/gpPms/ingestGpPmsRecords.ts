@@ -5,6 +5,8 @@ import {
   GpPmsFetchOptions,
   GpPmsRecord,
 } from "./types";
+import { DEFAULT_TRUST_LOG_PATH, FileTrustLogger } from "../trustSpine/fileTrustLogger";
+import { TrustLogger } from "../trustSpine/types";
 
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_BACKOFF_BASE_MS = 100;
@@ -32,21 +34,45 @@ export const consoleIngestionLogger: IngestionLogger = (entry) => {
 };
 
 export interface IngestGpPmsRecordsOptions extends GpPmsFetchOptions {
+  /**
+   * Identifies this logical ingestion run (e.g. one per scheduled slot),
+   * not the attempt. Calling ingestGpPmsRecords twice with the same key
+   * (a duplicate trigger, a retried orchestrator step) reuses the same
+   * trust-log transaction ID instead of logging it twice.
+   */
+  idempotencyKey: string;
   maxAttempts?: number;
   /** Exponential backoff base; attempt N waits backoffBaseMs * 2^(N-1) before retrying. Set 0 in tests. */
   backoffBaseMs?: number;
   logger?: IngestionLogger;
+  /** Defaults to a FileTrustLogger at DEFAULT_TRUST_LOG_PATH; inject a fake in tests. */
+  trustLogger?: TrustLogger;
 }
 
 export type IngestGpPmsRecordsResult =
-  | { outcome: "success"; records: GpPmsRecord[]; attempts: number }
-  | { outcome: "failure"; errorClass: GpPmsErrorClass; errorMessage: string; attempts: number };
+  | { outcome: "success"; records: GpPmsRecord[]; attempts: number; transactionId: string }
+  | {
+      outcome: "failure";
+      errorClass: GpPmsErrorClass;
+      errorMessage: string;
+      attempts: number;
+      transactionId: string;
+    };
 
 /**
  * Fetches records from a GpPmsClient with an enforced timeout and capped,
  * exponential-backoff retries on transient failures (connection refusal,
  * timeout). Every attempt is logged with a timestamp and outcome —
  * satisfies STORY-001's "all ingestion attempts are logged" criterion.
+ *
+ * Once the run concludes (success or exhausted retries), it is logged
+ * exactly once to the trust spine with a unique transaction ID — STORY-011's
+ * "a data ingestion process, when completed, is logged with a unique
+ * transaction ID" criterion. If that trust-log write itself fails, this
+ * function throws (TrustSpineError) rather than returning a result that was
+ * never actually logged — a deliberate choice: an audit-log gap for a
+ * compliance-tracked process is treated as more dangerous than losing this
+ * run's fetched records, which the next scheduled run will re-fetch anyway.
  */
 export async function ingestGpPmsRecords(
   client: GpPmsClient,
@@ -55,6 +81,7 @@ export async function ingestGpPmsRecords(
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const backoffBaseMs = options.backoffBaseMs ?? DEFAULT_BACKOFF_BASE_MS;
   const logger = options.logger ?? consoleIngestionLogger;
+  const trustLogger = options.trustLogger ?? new FileTrustLogger(DEFAULT_TRUST_LOG_PATH);
 
   let lastErrorClass: GpPmsErrorClass = "ConnectionError";
   let lastErrorMessage = "GP PMS ingestion never attempted (maxAttempts <= 0).";
@@ -62,18 +89,9 @@ export async function ingestGpPmsRecords(
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const startedAt = Date.now();
 
+    let records: GpPmsRecord[];
     try {
-      const records = await fetchWithTimeout(client, options);
-      logger({
-        timestamp: new Date().toISOString(),
-        event: "gp_pms_ingestion_attempt",
-        attempt,
-        maxAttempts,
-        durationMs: Date.now() - startedAt,
-        outcome: "success",
-        recordCount: records.length,
-      });
-      return { outcome: "success", records, attempts: attempt };
+      records = await fetchWithTimeout(client, options);
     } catch (error) {
       const gpError = toGpPmsError(error);
       lastErrorClass = gpError.errorClass;
@@ -93,19 +111,62 @@ export async function ingestGpPmsRecords(
       const isRetryable = RETRYABLE_ERROR_CLASSES.includes(gpError.errorClass);
       const attemptsRemain = attempt < maxAttempts;
       if (!isRetryable || !attemptsRemain) {
+        const { transactionId } = await trustLogger.record({
+          idempotencyKey: options.idempotencyKey,
+          processType: "ingestion",
+          processName: "ingestGpPmsRecords",
+          outcome: "failure",
+          errorClass: gpError.errorClass,
+          context: { attempts: attempt, errorMessage: gpError.message },
+        });
         return {
           outcome: "failure",
           errorClass: gpError.errorClass,
           errorMessage: gpError.message,
           attempts: attempt,
+          transactionId,
         };
       }
 
       await sleep(backoffBaseMs * 2 ** (attempt - 1));
+      continue;
     }
+
+    // Only reached when fetchWithTimeout succeeded — records is assigned.
+    logger({
+      timestamp: new Date().toISOString(),
+      event: "gp_pms_ingestion_attempt",
+      attempt,
+      maxAttempts,
+      durationMs: Date.now() - startedAt,
+      outcome: "success",
+      recordCount: records.length,
+    });
+    const { transactionId } = await trustLogger.record({
+      idempotencyKey: options.idempotencyKey,
+      processType: "ingestion",
+      processName: "ingestGpPmsRecords",
+      outcome: "success",
+      context: { attempts: attempt, recordCount: records.length },
+    });
+    return { outcome: "success", records, attempts: attempt, transactionId };
   }
 
-  return { outcome: "failure", errorClass: lastErrorClass, errorMessage: lastErrorMessage, attempts: 0 };
+  const { transactionId } = await trustLogger.record({
+    idempotencyKey: options.idempotencyKey,
+    processType: "ingestion",
+    processName: "ingestGpPmsRecords",
+    outcome: "failure",
+    errorClass: lastErrorClass,
+    context: { attempts: 0, errorMessage: lastErrorMessage },
+  });
+  return {
+    outcome: "failure",
+    errorClass: lastErrorClass,
+    errorMessage: lastErrorMessage,
+    attempts: 0,
+    transactionId,
+  };
 }
 
 async function fetchWithTimeout(

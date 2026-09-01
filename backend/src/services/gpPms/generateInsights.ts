@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { GpPmsRecord } from "./types";
+import { DEFAULT_TRUST_LOG_PATH, FileTrustLogger } from "../trustSpine/fileTrustLogger";
+import { TrustLogger } from "../trustSpine/types";
 
 const EXPECTED_RECORD_TYPES = ["appointment", "registration", "capacity"] as const;
 
@@ -27,6 +29,19 @@ export interface GenerateInsightsOptions {
   /** Reference time for staleness checks. Defaults to now; injectable for tests. */
   now?: Date;
   staleAfterMs?: number;
+  /**
+   * Identifies this prediction run to the trust spine. Two calls with the
+   * same key (e.g. re-deriving insights for the same ingested batch) reuse
+   * the same trust-log transaction ID instead of logging it twice.
+   */
+  idempotencyKey: string;
+  /** Defaults to a FileTrustLogger at DEFAULT_TRUST_LOG_PATH; inject a fake in tests. */
+  trustLogger?: TrustLogger;
+}
+
+export interface GenerateInsightsResult {
+  insights: GpPmsInsights;
+  transactionId: string;
 }
 
 const DEFAULT_STALE_AFTER_MS = 24 * 60 * 60 * 1000;
@@ -36,11 +51,17 @@ const DEFAULT_STALE_AFTER_MS = 24 * 60 * 60 * 1000;
  * GP PMS records. Deterministic by design (CLAUDE.md Core Principle: "LLMs
  * are probabilistic. Production systems must be deterministic.") — no model
  * call here, just arithmetic over the records in hand.
+ *
+ * This is r0's "prediction" process for STORY-011's trust spine: once
+ * computed, the run is logged exactly once with a unique transaction ID. If
+ * that trust-log write fails, this function throws (TrustSpineError) rather
+ * than returning insights that were never actually logged — same "fail
+ * loud" policy as the ingestion pipelines, for the same reason.
  */
-export function generateInsights(
+export async function generateInsights(
   records: GpPmsRecord[],
-  options: GenerateInsightsOptions = {},
-): GpPmsInsights {
+  options: GenerateInsightsOptions,
+): Promise<GenerateInsightsResult> {
   const now = options.now ?? new Date();
   const staleAfterMs = options.staleAfterMs ?? DEFAULT_STALE_AFTER_MS;
   const dataUncertainties: string[] = [];
@@ -87,11 +108,22 @@ export function generateInsights(
     }
   }
 
-  return {
+  const insights: GpPmsInsights = {
     recordCount: records.length,
     recordCountsByType,
     mostRecentCaptureAt,
     capacityUtilization,
     dataUncertainties,
   };
+
+  const trustLogger = options.trustLogger ?? new FileTrustLogger(DEFAULT_TRUST_LOG_PATH);
+  const { transactionId } = await trustLogger.record({
+    idempotencyKey: options.idempotencyKey,
+    processType: "prediction",
+    processName: "generateInsights",
+    outcome: "success",
+    context: { recordCount: insights.recordCount, dataUncertaintyCount: dataUncertainties.length },
+  });
+
+  return { insights, transactionId };
 }

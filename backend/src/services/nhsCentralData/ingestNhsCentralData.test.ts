@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { FakeNhsCentralDataClient } from "./fakeNhsCentralDataClient";
 import { ingestNhsCentralData, IngestionLogEntry } from "./ingestNhsCentralData";
+import { FakeTrustLogger } from "../trustSpine/fakeTrustLogger";
+import { TrustSpineError } from "../trustSpine/types";
 
 function collectLogs() {
   const logs: IngestionLogEntry[] = [];
@@ -15,15 +17,74 @@ test("happy path: returns all fixture records in one attempt", async () => {
     idempotencyKey: "test-happy",
     timeoutMs: 1000,
     logger,
+    trustLogger: new FakeTrustLogger(),
   });
 
   assert.equal(result.outcome, "success");
   if (result.outcome === "success") {
     assert.equal(result.records.length, 3);
     assert.equal(result.attempts, 1);
+    assert.match(result.transactionId, /^[0-9a-f-]{36}$/);
   }
   assert.equal(logs.length, 1);
   assert.equal(logs[0]?.outcome, "success");
+});
+
+test("trust spine: a completed ingestion process is logged exactly once with its transaction ID", async () => {
+  const trustLogger = new FakeTrustLogger();
+  const result = await ingestNhsCentralData(new FakeNhsCentralDataClient(), {
+    since: "2026-08-01T00:00:00Z",
+    idempotencyKey: "test-trust",
+    timeoutMs: 1000,
+    trustLogger,
+  });
+
+  assert.equal(trustLogger.records.length, 1);
+  assert.equal(trustLogger.records[0]?.processType, "ingestion");
+  assert.equal(trustLogger.records[0]?.idempotencyKey, "test-trust");
+  assert.equal(result.outcome, "success");
+  if (result.outcome === "success") {
+    assert.equal(typeof result.transactionId, "string");
+  }
+});
+
+test("trust spine: replaying the same idempotencyKey reuses the same transaction ID", async () => {
+  const trustLogger = new FakeTrustLogger();
+  const first = await ingestNhsCentralData(new FakeNhsCentralDataClient(), {
+    since: "2026-08-01T00:00:00Z",
+    idempotencyKey: "test-replay",
+    timeoutMs: 1000,
+    trustLogger,
+  });
+  const second = await ingestNhsCentralData(new FakeNhsCentralDataClient(), {
+    since: "2026-08-01T00:00:00Z",
+    idempotencyKey: "test-replay",
+    timeoutMs: 1000,
+    trustLogger,
+  });
+
+  assert.equal(trustLogger.records.length, 1, "the second run must not create a second trust-log entry");
+  if (first.outcome === "success" && second.outcome === "success") {
+    assert.equal(second.transactionId, first.transactionId);
+  } else {
+    assert.fail("both runs were expected to succeed");
+  }
+});
+
+test("failure path: a trust-log write failure fails the ingestion loudly instead of returning an unlogged result", async () => {
+  const trustLogger = new FakeTrustLogger();
+  trustLogger.failNextWrite = true;
+
+  await assert.rejects(
+    () =>
+      ingestNhsCentralData(new FakeNhsCentralDataClient(), {
+        since: "2026-08-01T00:00:00Z",
+        idempotencyKey: "test-log-failure",
+        timeoutMs: 1000,
+        trustLogger,
+      }),
+    (error: unknown) => error instanceof TrustSpineError && error.errorClass === "LogWriteError",
+  );
 });
 
 test("failure path: format mismatch fails on the first attempt and is never retried", async () => {
@@ -35,12 +96,14 @@ test("failure path: format mismatch fails on the first attempt and is never retr
     maxAttempts: 3,
     backoffBaseMs: 0,
     logger,
+    trustLogger: new FakeTrustLogger(),
   });
 
   assert.equal(result.outcome, "failure");
   if (result.outcome === "failure") {
     assert.equal(result.errorClass, "FormatMismatchError");
     assert.equal(result.attempts, 1);
+    assert.equal(typeof result.transactionId, "string");
   }
   assert.equal(logs.length, 1, "a non-retryable failure should not be retried");
 });
@@ -54,6 +117,7 @@ test("failure path: connection failure retries up to the cap, logging every atte
     maxAttempts: 3,
     backoffBaseMs: 0,
     logger,
+    trustLogger: new FakeTrustLogger(),
   });
 
   assert.equal(result.outcome, "failure");
@@ -75,6 +139,7 @@ test("failure path: timeout is caller-enforced (not left to the client), retries
     maxAttempts: 2,
     backoffBaseMs: 10,
     logger,
+    trustLogger: new FakeTrustLogger(),
   });
 
   const elapsedMs = Date.now() - startedAt;

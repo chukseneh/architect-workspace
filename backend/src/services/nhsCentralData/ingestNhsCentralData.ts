@@ -5,6 +5,8 @@ import {
   NhsCentralDataFetchOptions,
   NhsCentralDataRecord,
 } from "./types";
+import { DEFAULT_TRUST_LOG_PATH, FileTrustLogger } from "../trustSpine/fileTrustLogger";
+import { TrustLogger } from "../trustSpine/types";
 
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_BACKOFF_BASE_MS = 100;
@@ -36,11 +38,19 @@ export interface IngestNhsCentralDataOptions extends NhsCentralDataFetchOptions 
   /** Exponential backoff base; attempt N waits backoffBaseMs * 2^(N-1) before retrying. Set 0 in tests. */
   backoffBaseMs?: number;
   logger?: IngestionLogger;
+  /** Defaults to a FileTrustLogger at DEFAULT_TRUST_LOG_PATH; inject a fake in tests. */
+  trustLogger?: TrustLogger;
 }
 
 export type IngestNhsCentralDataResult =
-  | { outcome: "success"; records: NhsCentralDataRecord[]; attempts: number }
-  | { outcome: "failure"; errorClass: NhsCentralDataErrorClass; errorMessage: string; attempts: number };
+  | { outcome: "success"; records: NhsCentralDataRecord[]; attempts: number; transactionId: string }
+  | {
+      outcome: "failure";
+      errorClass: NhsCentralDataErrorClass;
+      errorMessage: string;
+      attempts: number;
+      transactionId: string;
+    };
 
 /**
  * Retries transient failures (connection, timeout) with capped exponential
@@ -49,6 +59,14 @@ export type IngestNhsCentralDataResult =
  * `idempotencyKey` — as the first attempt; that is what makes retrying safe
  * against a source that may already have completed the write before we saw
  * success (see nhs-ops-status/server.py's own ingestion ledger).
+ *
+ * `options.idempotencyKey` also identifies the run to the trust spine: once
+ * the run concludes (success or exhausted retries) it is logged exactly
+ * once with a unique transaction ID. If that trust-log write itself fails,
+ * this function throws (TrustSpineError) instead of returning a result that
+ * was never actually logged — same policy as ingestGpPmsRecords, and for
+ * the same reason: an unlogged compliance-tracked process is worse than
+ * losing this run's fetched records.
  */
 export async function ingestNhsCentralData(
   client: NhsCentralDataClient,
@@ -57,6 +75,7 @@ export async function ingestNhsCentralData(
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const backoffBaseMs = options.backoffBaseMs ?? DEFAULT_BACKOFF_BASE_MS;
   const logger = options.logger ?? consoleIngestionLogger;
+  const trustLogger = options.trustLogger ?? new FileTrustLogger(DEFAULT_TRUST_LOG_PATH);
 
   let lastErrorClass: NhsCentralDataErrorClass = "ConnectionError";
   let lastErrorMessage = "NHS central data ingestion never attempted (maxAttempts <= 0).";
@@ -64,18 +83,9 @@ export async function ingestNhsCentralData(
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const startedAt = Date.now();
 
+    let records: NhsCentralDataRecord[];
     try {
-      const records = await fetchWithTimeout(client, options);
-      logger({
-        timestamp: new Date().toISOString(),
-        event: "nhs_central_data_ingestion_attempt",
-        attempt,
-        maxAttempts,
-        durationMs: Date.now() - startedAt,
-        outcome: "success",
-        recordCount: records.length,
-      });
-      return { outcome: "success", records, attempts: attempt };
+      records = await fetchWithTimeout(client, options);
     } catch (error) {
       const nhsError = toNhsCentralDataError(error);
       lastErrorClass = nhsError.errorClass;
@@ -95,19 +105,62 @@ export async function ingestNhsCentralData(
       const isRetryable = RETRYABLE_ERROR_CLASSES.includes(nhsError.errorClass);
       const attemptsRemain = attempt < maxAttempts;
       if (!isRetryable || !attemptsRemain) {
+        const { transactionId } = await trustLogger.record({
+          idempotencyKey: options.idempotencyKey,
+          processType: "ingestion",
+          processName: "ingestNhsCentralData",
+          outcome: "failure",
+          errorClass: nhsError.errorClass,
+          context: { attempts: attempt, errorMessage: nhsError.message },
+        });
         return {
           outcome: "failure",
           errorClass: nhsError.errorClass,
           errorMessage: nhsError.message,
           attempts: attempt,
+          transactionId,
         };
       }
 
       await sleep(backoffBaseMs * 2 ** (attempt - 1));
+      continue;
     }
+
+    // Only reached when fetchWithTimeout succeeded — records is assigned.
+    logger({
+      timestamp: new Date().toISOString(),
+      event: "nhs_central_data_ingestion_attempt",
+      attempt,
+      maxAttempts,
+      durationMs: Date.now() - startedAt,
+      outcome: "success",
+      recordCount: records.length,
+    });
+    const { transactionId } = await trustLogger.record({
+      idempotencyKey: options.idempotencyKey,
+      processType: "ingestion",
+      processName: "ingestNhsCentralData",
+      outcome: "success",
+      context: { attempts: attempt, recordCount: records.length },
+    });
+    return { outcome: "success", records, attempts: attempt, transactionId };
   }
 
-  return { outcome: "failure", errorClass: lastErrorClass, errorMessage: lastErrorMessage, attempts: 0 };
+  const { transactionId } = await trustLogger.record({
+    idempotencyKey: options.idempotencyKey,
+    processType: "ingestion",
+    processName: "ingestNhsCentralData",
+    outcome: "failure",
+    errorClass: lastErrorClass,
+    context: { attempts: 0, errorMessage: lastErrorMessage },
+  });
+  return {
+    outcome: "failure",
+    errorClass: lastErrorClass,
+    errorMessage: lastErrorMessage,
+    attempts: 0,
+    transactionId,
+  };
 }
 
 /**

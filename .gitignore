@@ -20,6 +20,9 @@ build/
 **/dist/
 **/build/
 
+# Runtime data (e.g. the trust log)
+backend/data/
+
 # Logs
 *.log
 npm-debug.log*

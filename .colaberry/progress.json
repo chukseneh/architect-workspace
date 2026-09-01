@@ -346,19 +346,38 @@
       "criteria": [
         {
           "text": "Given a data ingestion process, when completed, then it is logged with a unique transaction ID.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given a prediction process, when completed, then it is logged with a unique transaction ID.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: All processes are idempotent and logs are immutable.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
+      "files_touched": [
+        ".gitignore",
+        "backend/src/services/trustSpine/types.ts",
+        "backend/src/services/trustSpine/fileTrustLogger.ts",
+        "backend/src/services/trustSpine/fakeTrustLogger.ts",
+        "backend/src/services/gpPms/ingestGpPmsRecords.ts",
+        "backend/src/services/gpPms/analyzeGpPmsData.ts",
+        "backend/src/services/gpPms/generateInsights.ts",
+        "backend/src/services/nhsCentralData/ingestNhsCentralData.ts",
+        "backend/src/services/nhsCentralData/analyzeNhsCentralData.ts",
+        "backend/src/services/nhsCentralData/generateNhsInsights.ts"
+      ],
+      "tests_added": [
+        "backend/src/services/trustSpine/fileTrustLogger.test.ts",
+        "backend/src/services/gpPms/ingestGpPmsRecords.test.ts",
+        "backend/src/services/gpPms/analyzeGpPmsData.test.ts",
+        "backend/src/services/gpPms/generateInsights.test.ts",
+        "backend/src/services/nhsCentralData/ingestNhsCentralData.test.ts",
+        "backend/src/services/nhsCentralData/analyzeNhsCentralData.test.ts",
+        "backend/src/services/nhsCentralData/generateNhsInsights.test.ts"
+      ],
       "notes": null,
       "updated_at": null,
       "verification": {
