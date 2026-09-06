@@ -4,7 +4,7 @@ As a data analyst, I want an AI decision engine, so that I can automate decision
 
 **Release:** r2 · AI Decision Engine and Dashboard (weeks 3–3)
 **Owner:** AI Development Team
-**Blocked by:** STORY-007
+**Blocked by:** nothing — you can start this now (was previously listed as "STORY-007", which itself lists "Blocked by: STORY-006" — a circular dependency in the plan docs, corrected here; see PROGRESS.md for the full note)
 
 ## The requirement this satisfies
 
