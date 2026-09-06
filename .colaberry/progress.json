@@ -216,13 +216,34 @@
         "backend/src/intelligence/draftLeadershipBriefingPrompt.ts",
         "backend/src/intelligence/anthropicDashboardClient.ts",
         "backend/src/intelligence/fakeDashboardClient.ts",
-        "backend/src/intelligence/dashboardSnapshot.ts"
+        "backend/src/intelligence/dashboardSnapshot.ts",
+        "backend/src/app.ts",
+        "backend/src/index.ts",
+        "backend/src/routes/dashboardRoute.ts",
+        "backend/package.json",
+        "backend/package-lock.json",
+        "frontend/package.json",
+        "frontend/vite.config.ts",
+        "frontend/tsconfig.json",
+        "frontend/tsconfig.app.json",
+        "frontend/tsconfig.node.json",
+        "frontend/index.html",
+        "frontend/src/main.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/index.css",
+        "frontend/CLAUDE.md",
+        "frontend/.gitignore",
+        "frontend/.oxlintrc.json",
+        "frontend/public/favicon.svg",
+        "frontend/README.md"
       ],
       "tests_added": [
         "backend/src/intelligence/draftLeadershipBriefingPrompt.test.ts",
-        "backend/src/intelligence/dashboardSnapshot.test.ts"
+        "backend/src/intelligence/dashboardSnapshot.test.ts",
+        "backend/src/app.test.ts",
+        "backend/src/routes/dashboardRoute.test.ts"
       ],
-      "notes": "Scoped as a backend-only data layer, confirmed with the user first: no frontend app or HTTP route exists anywhere in this repo yet, so a full UI + API in one story would not be a walking skeleton. buildDashboardSnapshot produces the data contract a future UI would render (current OPEL level + forecasted pressure_level per ICB, satisfying REQ-016) plus the already-scored draft-leadership-briefing output (REQ-012), with 'display activity' interpreted as each snapshot computation for trust-logging purposes. The task's own 'reuse' list named only STORY-002 and STORY-006, but neither produces a forecast -- used STORY-012's predict-pressure output for the forecasted metric instead, flagged to the user as an incomplete-citation situation matching STORY-012's own REQ-003/004 precedent. Incomplete/malformed ICB data is never hard-rejected -- it's flagged in a structured dataUncertainties list (no_icb_data, malformed_forecast:<icbName>) alongside the prompt's own fail-safe narrative handling, per this story's 'flag for review' criterion (distinct from STORY-006's 'reject bad input' criterion). Both prompt-drift-guard tests (recommend-intervention was already done; draft-leadership-briefing added here) passed byte-for-byte on the first run -- the STORY-012 lesson held. Verified with 120 automated tests (tsc + node --test, all passing except one pre-existing unrelated skipped integration test) and three live, non-mocked calls through buildDashboardSnapshot against the real Anthropic API: a 3-ICB mixed-severity scenario (overall_status correctly rolled up to Critical, most severe tier wins, specific Critical ICB named in the briefing), an empty-ICB-data scenario (correctly defaulted to Critical with an explicit 'no data' headline rather than a false-calm result), and a malformed-pressure-tier scenario (the invalid entry correctly named and treated as Critical rather than silently dropped) -- closing the gap flagged in the original completion report that only the clear-case path had been proven live. The frontend/HTTP layer this story's own failure paths (UI rendering failure, dashboard loading error) describe remains a deliberate, flagged follow-up.",
+      "notes": "Scoped as a backend-only data layer, confirmed with the user first: no frontend app or HTTP route exists anywhere in this repo yet, so a full UI + API in one story would not be a walking skeleton. buildDashboardSnapshot produces the data contract a future UI would render (current OPEL level + forecasted pressure_level per ICB, satisfying REQ-016) plus the already-scored draft-leadership-briefing output (REQ-012), with 'display activity' interpreted as each snapshot computation for trust-logging purposes. The task's own 'reuse' list named only STORY-002 and STORY-006, but neither produces a forecast -- used STORY-012's predict-pressure output for the forecasted metric instead, flagged to the user as an incomplete-citation situation matching STORY-012's own REQ-003/004 precedent. Incomplete/malformed ICB data is never hard-rejected -- it's flagged in a structured dataUncertainties list (no_icb_data, malformed_forecast:<icbName>) alongside the prompt's own fail-safe narrative handling, per this story's 'flag for review' criterion (distinct from STORY-006's 'reject bad input' criterion). Both prompt-drift-guard tests (recommend-intervention was already done; draft-leadership-briefing added here) passed byte-for-byte on the first run -- the STORY-012 lesson held. Verified with 120 automated tests and three live, non-mocked calls through buildDashboardSnapshot against the real Anthropic API (mixed-severity, empty-data, and malformed-tier scenarios) -- closing the gap that only the clear-case path had been proven live. FOLLOW-UP (2026-09-06, same session): built the previously-deferred frontend/HTTP layer. Backend: backend/src/app.ts (Express app factory) + backend/src/index.ts (entrypoint, SIGTERM-safe shutdown) + backend/src/routes/dashboardRoute.ts (POST /api/dashboard/snapshot -- Zod-validates request shape before any model call per CLAUDE.md's Contract Enforcement Layer, returns 200/snapshot on success, 502 for upstream/model failures, 500 for a trust-log write failure -- the one place 'fail loud' is intentionally absorbed since an HTTP handler is the trust boundary; supports an Idempotency-Key header for safe client retries, defaulting to a fresh UUID per request since each request is a new logical display event). Added supertest/@types/supertest as dev dependencies for route-level testing without hitting the real API. Frontend: scaffolded frontend/ with Vite + React + TS instead of the CLAUDE.md-documented CRA, confirmed with the user first and logged with reasoning in frontend/CLAUDE.md (CRA is deprecated upstream and heavy for a walking skeleton; same React+TS output, same folder conventions apply unchanged) -- only a booting placeholder page exists so far, no Dashboard page or backend integration yet. Verified: 128 backend tests (all passing except the one pre-existing unrelated skip), a real (non-supertest) server boot curled on a real port for both /health and /api/dashboard/snapshot (the latter against the real Anthropic API, correctly returning a Critical roll-up over HTTP), and a real frontend dev-server boot with the actual compiled App.tsx confirmed served (not a cached/stale page). Raises this story's confidence, since the literal 'the dashboard displays' wording now has a genuine (if minimal) UI + API surface behind it, though the Dashboard page itself still doesn't call the backend yet -- that remains the next real gap.",
       "updated_at": "2026-09-06",
       "verification": {
         "state": "in_progress",
