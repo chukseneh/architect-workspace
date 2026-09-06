@@ -403,21 +403,51 @@
       "criteria": [
         {
           "text": "Given the AI intelligence layer is developed, when data is processed, then enhanced insights should be generated.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given the AI intelligence layer is developed, when no data is available, then the system should notify the user of missing data.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: Given the AI intelligence layer is developed, when insights are generated, then the process should be logged with a timestamp and data source.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/package.json",
+        "backend/package-lock.json",
+        "backend/src/services/ambulance/types.ts",
+        "backend/src/services/ambulance/mockAmbulanceClient.ts",
+        "backend/src/services/ambulance/ingestAmbulanceRecords.ts",
+        "backend/src/services/ambulance/generateAmbulanceInsights.ts",
+        "backend/src/services/ambulance/analyzeAmbulanceData.ts",
+        "backend/src/services/community/types.ts",
+        "backend/src/services/community/mockCommunityClient.ts",
+        "backend/src/services/community/ingestCommunityRecords.ts",
+        "backend/src/services/community/generateCommunityInsights.ts",
+        "backend/src/services/community/analyzeCommunityData.ts",
+        "backend/src/intelligence/types.ts",
+        "backend/src/intelligence/predictPressurePrompt.ts",
+        "backend/src/intelligence/extractJsonObject.ts",
+        "backend/src/intelligence/anthropicPressurePredictionClient.ts",
+        "backend/src/intelligence/fakePressurePredictionClient.ts",
+        "backend/src/intelligence/predictPressure.ts",
+        "backend/src/intelligence/analyzeIcbPressure.ts"
+      ],
+      "tests_added": [
+        "backend/src/services/ambulance/ingestAmbulanceRecords.test.ts",
+        "backend/src/services/ambulance/generateAmbulanceInsights.test.ts",
+        "backend/src/services/ambulance/analyzeAmbulanceData.test.ts",
+        "backend/src/services/community/ingestCommunityRecords.test.ts",
+        "backend/src/services/community/generateCommunityInsights.test.ts",
+        "backend/src/services/community/analyzeCommunityData.test.ts",
+        "backend/src/intelligence/predictPressure.test.ts",
+        "backend/src/intelligence/analyzeIcbPressure.test.ts",
+        "backend/src/intelligence/predictPressurePrompt.test.ts"
+      ],
+      "notes": "Ambulance and community ingestion (REQ-003/004) built from scratch mirroring the GP PMS pattern (injectable client interface + fixture-backed mock, no real credentials exist for either system). AI intelligence layer wires the existing predict-pressure prompt (scored 1.00, previously unwired) to live ambulance/community insights plus an NHS central data record via a new @anthropic-ai/sdk dependency. Verified with 95 automated tests (tsc + node --test, all passing except one pre-existing skipped integration test), one live, non-mocked call through analyzeIcbPressure against the real Anthropic API confirming the model genuinely used the live ambulance/community feeds over the NHS record's own bundled numbers, and a second live call confirming a genuine API auth rejection is correctly classified as AuthError. Found and fixed two real bugs during BREAK/HARDEN: (1) predictPressure.ts's success-path trust-log call was originally inside the same try block as the model call, so a simulated trust-log write failure was misclassified as a retryable model error instead of propagating -- the same bug class STORY-011 hit in the ingestion pipelines; (2) predictPressurePrompt.ts's hand-copied template had silently dropped backtick formatting present in the actual scored prompts/predict-pressure/v1.0.0.md, caught by a new drift-guard test that compares the rendered prompt byte-for-byte against the source file. User explicitly confirmed (asked directly, not assumed) that partial ambulance/community data should be passed to predict-pressure as null fields rather than treated as no_data -- matches the shipped behavior.",
+      "updated_at": "2026-09-06",
       "verification": {
         "state": "in_progress",
         "criteria_passed": 0,
