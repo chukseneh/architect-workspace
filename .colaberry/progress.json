@@ -200,21 +200,30 @@
       "criteria": [
         {
           "text": "Given operational data, when processed, then the dashboard displays current and forecasted metrics.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given incomplete data, when processed, then the dashboard flags it for review.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The dashboard logs all display activities and flags data issues.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/intelligence/dashboardTypes.ts",
+        "backend/src/intelligence/draftLeadershipBriefingPrompt.ts",
+        "backend/src/intelligence/anthropicDashboardClient.ts",
+        "backend/src/intelligence/fakeDashboardClient.ts",
+        "backend/src/intelligence/dashboardSnapshot.ts"
+      ],
+      "tests_added": [
+        "backend/src/intelligence/draftLeadershipBriefingPrompt.test.ts",
+        "backend/src/intelligence/dashboardSnapshot.test.ts"
+      ],
+      "notes": "Scoped as a backend-only data layer, confirmed with the user first: no frontend app or HTTP route exists anywhere in this repo yet, so a full UI + API in one story would not be a walking skeleton. buildDashboardSnapshot produces the data contract a future UI would render (current OPEL level + forecasted pressure_level per ICB, satisfying REQ-016) plus the already-scored draft-leadership-briefing output (REQ-012), with 'display activity' interpreted as each snapshot computation for trust-logging purposes. The task's own 'reuse' list named only STORY-002 and STORY-006, but neither produces a forecast -- used STORY-012's predict-pressure output for the forecasted metric instead, flagged to the user as an incomplete-citation situation matching STORY-012's own REQ-003/004 precedent. Incomplete/malformed ICB data is never hard-rejected -- it's flagged in a structured dataUncertainties list (no_icb_data, malformed_forecast:<icbName>) alongside the prompt's own fail-safe narrative handling, per this story's 'flag for review' criterion (distinct from STORY-006's 'reject bad input' criterion). Both prompt-drift-guard tests (recommend-intervention was already done; draft-leadership-briefing added here) passed byte-for-byte on the first run -- the STORY-012 lesson held. Verified with 120 automated tests (tsc + node --test, all passing except one pre-existing unrelated skipped integration test) and one live, non-mocked call through buildDashboardSnapshot against the real Anthropic API with a 3-ICB mixed-severity scenario, confirming overall_status correctly rolled up to Critical (most severe tier wins) and named the specific Critical ICB in the briefing.",
+      "updated_at": "2026-09-06",
       "verification": {
         "state": "in_progress",
         "criteria_passed": 0,
