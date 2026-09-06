@@ -3,13 +3,13 @@
   "project": "AI Healthcare Operations Command Centre",
   "totals": {
     "stories_total": 10,
-    "stories_verified": 3,
+    "stories_verified": 6,
     "stories_submitted": 0,
-    "stories_in_progress": 7,
+    "stories_in_progress": 4,
     "stories_not_started": 0,
     "criteria_total": 32,
-    "criteria_passed": 11,
-    "points_awarded": 240
+    "criteria_passed": 20,
+    "points_awarded": 480
   },
   "stories": [
     {
@@ -182,19 +182,15 @@
       "notes": "Wired the already-scored (1.00) recommend-intervention prompt into a trust-logged decision engine, mirroring STORY-012's predict-pressure orchestration pattern. Scoped as a thin wrapper: the engine accepts already-known decision parameters (icb_name, pressure_level, primary_driver, available_levers) as validated input rather than deriving them itself from raw GP PMS/NHS/ambulance/community data -- REQ-011 doesn't specify that derivation, and it's out of scope for this story's acceptance criteria. Found and corrected a real doc defect before starting: docs/stories/STORY-006.md said 'Blocked by: STORY-007' and STORY-007.md said 'Blocked by: STORY-006' -- a genuine circular dependency in the plan (also present in docs/STORIES.md), meaning neither story could ever start as literally written. Confirmed with the user this was a doc error, not a real constraint; corrected STORY-006.md's own line, left STORY-007.md untouched (out of scope for this story). Applied last story's drift-guard lesson from the start this time -- the recommend-intervention prompt copy matched the source .md file byte-for-byte on the first run, no transcription bug this time. Verified with 108 automated tests (tsc + node --test, all passing except one pre-existing unrelated skipped integration test) and one live, non-mocked call through makeDecision against the real Anthropic API, confirming a High-pressure/ambulance-driven scenario with divert_ambulances available correctly recommended divert_ambulances at high confidence.",
       "updated_at": "2026-09-06",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
-        "commit_sha": null,
-        "commit_url": null,
-        "commit_at": null,
-        "points_awarded": null,
-        "outstanding": [
-          "Given the AI decision engine is operational, when a decision-making process is initiated, then the engine should provide a decision output within 5 seconds.",
-          "Given the AI decision engine is operational, when an invalid input is provided, then the engine should return an error message.",
-          "Trust: Given the AI decision engine is operational, when a decision is made, then the decision should be logged with a timestamp and decision parameters."
-        ]
+        "verified_at": "2026-09-06T01:54:53.582Z",
+        "commit_sha": "adf441fce4b1538ff7de428a3a9475ba388a1a14",
+        "commit_url": "https://github.com/chukseneh/architect-workspace/commit/adf441fce4b1538ff7de428a3a9475ba388a1a14",
+        "commit_at": "2026-09-06T01:54:17Z",
+        "points_awarded": 80,
+        "outstanding": []
       }
     },
     {
@@ -391,19 +387,15 @@
       "notes": null,
       "updated_at": null,
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
-        "commit_sha": null,
-        "commit_url": null,
-        "commit_at": null,
-        "points_awarded": null,
-        "outstanding": [
-          "Given a data ingestion process, when completed, then it is logged with a unique transaction ID.",
-          "Given a prediction process, when completed, then it is logged with a unique transaction ID.",
-          "Trust: All processes are idempotent and logs are immutable."
-        ]
+        "verified_at": "2026-09-01T03:01:23.613Z",
+        "commit_sha": "96811aba70e341e1e8493bfd256d498454133646",
+        "commit_url": "https://github.com/chukseneh/architect-workspace/commit/96811aba70e341e1e8493bfd256d498454133646",
+        "commit_at": "2026-09-01T02:58:01Z",
+        "points_awarded": 80,
+        "outstanding": []
       }
     },
     {
@@ -459,19 +451,15 @@
       "notes": "Ambulance and community ingestion (REQ-003/004) built from scratch mirroring the GP PMS pattern (injectable client interface + fixture-backed mock, no real credentials exist for either system). AI intelligence layer wires the existing predict-pressure prompt (scored 1.00, previously unwired) to live ambulance/community insights plus an NHS central data record via a new @anthropic-ai/sdk dependency. Verified with 95 automated tests (tsc + node --test, all passing except one pre-existing skipped integration test), one live, non-mocked call through analyzeIcbPressure against the real Anthropic API confirming the model genuinely used the live ambulance/community feeds over the NHS record's own bundled numbers, and a second live call confirming a genuine API auth rejection is correctly classified as AuthError. Found and fixed two real bugs during BREAK/HARDEN: (1) predictPressure.ts's success-path trust-log call was originally inside the same try block as the model call, so a simulated trust-log write failure was misclassified as a retryable model error instead of propagating -- the same bug class STORY-011 hit in the ingestion pipelines; (2) predictPressurePrompt.ts's hand-copied template had silently dropped backtick formatting present in the actual scored prompts/predict-pressure/v1.0.0.md, caught by a new drift-guard test that compares the rendered prompt byte-for-byte against the source file. User explicitly confirmed (asked directly, not assumed) that partial ambulance/community data should be passed to predict-pressure as null fields rather than treated as no_data -- matches the shipped behavior.",
       "updated_at": "2026-09-06",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
-        "commit_sha": null,
-        "commit_url": null,
-        "commit_at": null,
-        "points_awarded": null,
-        "outstanding": [
-          "Given the AI intelligence layer is developed, when data is processed, then enhanced insights should be generated.",
-          "Given the AI intelligence layer is developed, when no data is available, then the system should notify the user of missing data.",
-          "Trust: Given the AI intelligence layer is developed, when insights are generated, then the process should be logged with a timestamp and data source."
-        ]
+        "verified_at": "2026-09-06T01:04:34.739Z",
+        "commit_sha": "8a93dca0266ad1a0479d9c7e9c59e05f86ba6796",
+        "commit_url": "https://github.com/chukseneh/architect-workspace/commit/8a93dca0266ad1a0479d9c7e9c59e05f86ba6796",
+        "commit_at": "2026-09-06T01:03:08Z",
+        "points_awarded": 80,
+        "outstanding": []
       }
     }
   ]
