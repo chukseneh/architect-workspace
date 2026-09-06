@@ -36,6 +36,10 @@ lives there, not duplicated here.
 
 The backend HTTP API lives at `backend/src/routes/` (Express, see
 `backend/src/app.ts`). Local dev: backend on `PORT` (default 3001), this
-app on Vite's default dev server port. No proxy or shared origin is
-configured yet — CORS/proxying is a follow-up once a page actually calls
-the backend.
+app on Vite's dev server, which proxies `/api/*` to `http://localhost:3001`
+(see `vite.config.ts`'s `server.proxy`) — `src/services/dashboardApi.ts`
+calls relative `/api/...` paths and relies on that proxy in dev.
+
+**Production deployment still needs its own same-origin or reverse-proxy
+config** (nginx, per root `CLAUDE.md`) — the Vite dev proxy only covers
+`npm run dev`, not a built/deployed app. Flagged, not yet built.
