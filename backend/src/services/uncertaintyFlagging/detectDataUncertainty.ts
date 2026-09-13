@@ -54,6 +54,19 @@ export function detectDataUncertainty(record: DataRecord): UncertaintyFlagResult
     }
   }
 
+  // `value < 0` is a generic rule across all metric types, but it's
+  // verified correct for every metric actually wired into this system, not
+  // just assumed: opelLevel, ambulanceHandoverOver60MinPct,
+  // dischargeDelayBeddays, criticalCareOccupancyPct, handoverDurationMinutes,
+  // and delayedDischargeBedDays all already carry a schema-level
+  // non-negative bound (see nhsCentralData/ambulance/community's own
+  // *RecordSchema definitions) -- a negative value for any of them is
+  // rejected before it ever reaches this function. The only metric that can
+  // actually arrive here negative is GP PMS's booked_slots_today
+  // (availableSlotsToday/bookedSlotsToday are unbounded z.number() fields),
+  // where a negative count of booked appointment slots is unambiguously
+  // implausible. If a future metric's domain legitimately allows negative
+  // values, this rule would need a per-metric override -- not needed today.
   const valueImplausible = value !== null && value < 0;
   const noTimestampAtAll = recordedAt === null && lastUpdatedMinutesAgo === null;
 
@@ -96,11 +109,15 @@ export function detectDataUncertainty(record: DataRecord): UncertaintyFlagResult
     };
   }
 
-  // 5. none: present, plausible, on time, no conflicting reading.
+  // 5. none: present, plausible, on time, no conflicting reading. Scaled
+  // linearly across the whole not-yet-stale window (ratio 0 to
+  // STALE_THRESHOLD_MULTIPLIER) so confidence actually decreases the
+  // closer a record gets to crossing into stale_data, rather than
+  // flattening out partway through the range.
   return {
     uncertain: false,
     category: "none",
-    confidenceScore: round2(clamp(1.0 - 0.1 * ratio, 0.9, 1.0)),
+    confidenceScore: round2(clamp(1.0 - (0.1 / STALE_THRESHOLD_MULTIPLIER) * ratio, 0.9, 1.0)),
     reason: `${record.metric} is present, plausible, and within its expected update frequency.`,
   };
 }
