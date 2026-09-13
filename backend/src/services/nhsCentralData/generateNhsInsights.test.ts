@@ -132,3 +132,29 @@ test("uncertainty: data older than the staleness threshold is flagged", async ()
 
   assert.ok(insights.dataUncertainties.includes("stale_data"));
 });
+
+test("STORY-009 integration: a genuinely stale ICB record is flagged per-ICB via the general uncertainty-flagging mechanism", async () => {
+  const farFuture = new Date("2026-08-30T09:00:00.000Z"); // well past all 3 records' 8h-frequency/3x threshold
+  const { insights } = await generateNhsInsights([MANCHESTER, SOUTH_EAST_LONDON, WEST_YORKSHIRE], {
+    now: farFuture,
+    idempotencyKey: "nhs-insights-test-capacity-uncertainty-stale",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(insights.dataUncertainties.includes(`icb_metric_uncertain:${MANCHESTER.icbName}:stale_data`));
+  assert.ok(insights.dataUncertainties.includes(`icb_metric_uncertain:${SOUTH_EAST_LONDON.icbName}:stale_data`));
+  assert.ok(insights.dataUncertainties.includes(`icb_metric_uncertain:${WEST_YORKSHIRE.icbName}:stale_data`));
+});
+
+test("STORY-009 integration: fresh ICB records are not flagged by the general uncertainty-flagging mechanism", async () => {
+  const { insights } = await generateNhsInsights([MANCHESTER, SOUTH_EAST_LONDON, WEST_YORKSHIRE], {
+    now: FIXED_NOW,
+    idempotencyKey: "nhs-insights-test-capacity-uncertainty-fresh",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(
+    !insights.dataUncertainties.some((flag) => flag.startsWith("icb_metric_uncertain:")),
+    "fresh, plausible ICB metrics must not be flagged",
+  );
+});

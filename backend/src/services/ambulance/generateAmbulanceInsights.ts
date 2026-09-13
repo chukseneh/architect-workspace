@@ -1,8 +1,20 @@
 import { AmbulanceHandoverRecord } from "./types";
 import { DEFAULT_TRUST_LOG_PATH, FileTrustLogger } from "../trustSpine/fileTrustLogger";
 import { TrustLogger } from "../trustSpine/types";
+import { fromAmbulanceHandoverRecord } from "../uncertaintyFlagging/fromAmbulanceHandoverRecord";
+import { detectDataUncertainty } from "../uncertaintyFlagging/detectDataUncertainty";
 
 const OVER_THRESHOLD_MINUTES = 60;
+
+/**
+ * STORY-009 integration: how often a handover record is expected under
+ * normal conditions, for the general uncertainty-flagging mechanism's own
+ * per-record staleness check. 3x this value is 36 hours, comfortably above
+ * the fixture data's own 24-hour happy-path gap, so this stays a distinct,
+ * looser threshold from this module's existing 24-hour DEFAULT_STALE_AFTER_MS
+ * rather than a duplicate of it.
+ */
+const HANDOVER_EXPECTED_UPDATE_FREQUENCY_MINUTES = 12 * 60;
 
 export interface AmbulanceInsights {
   recordCount: number;
@@ -67,6 +79,41 @@ export async function generateAmbulanceInsights(
     const ageMs = now.getTime() - new Date(mostRecentCaptureAt).getTime();
     if (ageMs > staleAfterMs) {
       dataUncertainties.push("stale_data");
+    }
+  }
+
+  // STORY-009 integration: unlike NHS's per-ICB records (each an
+  // independent current-state entity), a batch of handover events is a
+  // historical event log -- an older event isn't "stale" the way a live
+  // reading would be. So this checks only the same most-recent record the
+  // stale_data check above already identifies, mirroring that check's own
+  // "is our most recent data too old" semantics rather than flagging every
+  // individual historical event. Calls detectDataUncertainty directly, not
+  // flagForReview(), so this function's own "logged exactly once"
+  // trust-spine contract stays intact.
+  if (mostRecentCaptureAt !== null) {
+    const mostRecentRecord = records.find((record) => record.capturedAt === mostRecentCaptureAt)!;
+    const mapped = fromAmbulanceHandoverRecord(mostRecentRecord, {
+      expectedUpdateFrequencyMinutes: HANDOVER_EXPECTED_UPDATE_FREQUENCY_MINUTES,
+      now,
+    });
+    try {
+      const recordUncertainty = detectDataUncertainty(mapped);
+      if (recordUncertainty.uncertain) {
+        dataUncertainties.push(`most_recent_handover_uncertain:${recordUncertainty.category}`);
+      }
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: "error",
+          service: "backend",
+          event: "handover_record_uncertainty_check_failed",
+          error_class: "FlagEvaluationError",
+          context: { recordId: mostRecentRecord.recordId, errorMessage: error instanceof Error ? error.message : String(error) },
+        }),
+      );
+      dataUncertainties.push("most_recent_handover_check_failed");
     }
   }
 

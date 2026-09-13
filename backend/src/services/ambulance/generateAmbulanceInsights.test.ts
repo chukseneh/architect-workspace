@@ -119,3 +119,47 @@ test("boundary: a handover at exactly 60 minutes does not count as over-threshol
 
   assert.equal(insights.ambulanceHandoverOver60MinPct, 0);
 });
+
+test("STORY-009 integration: a genuinely stale most-recent record is flagged via the general uncertainty-flagging mechanism", async () => {
+  const farFuture = new Date("2026-08-25T09:00:00.000Z"); // well past OVER_60_B's 12h-frequency/3x threshold
+  const { insights } = await generateAmbulanceInsights([UNDER_60, OVER_60_A, OVER_60_B], {
+    now: farFuture,
+    idempotencyKey: "ambulance-insights-test-capacity-uncertainty-stale",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(insights.dataUncertainties.includes("stale_data"), "the existing whole-batch check must still fire");
+  assert.ok(
+    insights.dataUncertainties.includes("most_recent_handover_uncertain:stale_data"),
+    "the new most-recent-record check must also fire, additively",
+  );
+});
+
+test("STORY-009 integration: a fresh most-recent record is not flagged by the general uncertainty-flagging mechanism", async () => {
+  const { insights } = await generateAmbulanceInsights([UNDER_60, OVER_60_A, OVER_60_B], {
+    now: FIXED_NOW,
+    idempotencyKey: "ambulance-insights-test-capacity-uncertainty-fresh",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(
+    !insights.dataUncertainties.some((flag) => flag.startsWith("most_recent_handover_uncertain:")),
+    "a fresh most-recent record must not be flagged",
+  );
+});
+
+test("STORY-009 integration: an older non-most-recent record going stale does not trigger a flag on its own", async () => {
+  // At this `now`, UNDER_60 (Aug21T09:00) alone would already cross the
+  // 12h-frequency/3x staleness threshold (37h gap), but OVER_60_B (Aug22T08:30,
+  // the most recent record) has not (13.5h gap). Only the most-recent
+  // record is checked -- a historical event log's older entries aren't
+  // "stale" the way a live reading would be -- so this must stay unflagged.
+  const now = new Date("2026-08-22T22:00:00.000Z");
+  const { insights } = await generateAmbulanceInsights([UNDER_60, OVER_60_A, OVER_60_B], {
+    now,
+    idempotencyKey: "ambulance-insights-test-older-record-not-flagged",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(!insights.dataUncertainties.some((flag) => flag.startsWith("most_recent_handover")));
+});

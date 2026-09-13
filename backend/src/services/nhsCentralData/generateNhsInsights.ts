@@ -1,6 +1,17 @@
 import { NhsCentralDataRecord } from "./types";
 import { DEFAULT_TRUST_LOG_PATH, FileTrustLogger } from "../trustSpine/fileTrustLogger";
 import { TrustLogger } from "../trustSpine/types";
+import { fromNhsCentralDataRecord } from "../uncertaintyFlagging/fromNhsCentralDataRecord";
+import { detectDataUncertainty } from "../uncertaintyFlagging/detectDataUncertainty";
+
+/**
+ * STORY-009 integration: how often the ambulance-handover metric is
+ * expected to refresh, for the general uncertainty-flagging mechanism's own
+ * staleness check on each ICB's record. Same reasoning as GP PMS's
+ * CAPACITY_EXPECTED_UPDATE_FREQUENCY_MINUTES -- 3x this value equals this
+ * module's existing 24-hour DEFAULT_STALE_AFTER_MS.
+ */
+const AMBULANCE_HANDOVER_EXPECTED_UPDATE_FREQUENCY_MINUTES = 8 * 60;
 
 export interface NhsCentralDataInsights {
   recordCount: number;
@@ -68,6 +79,39 @@ export async function generateNhsInsights(
     const ageMs = now.getTime() - new Date(mostRecentUpdateAt).getTime();
     if (ageMs > staleAfterMs) {
       dataUncertainties.push("stale_data");
+    }
+  }
+
+  // STORY-009 integration: unlike GP PMS's single "most recent" capacity
+  // record, each NHS record is its own ICB -- so every record is checked
+  // independently rather than picking one representative record, since one
+  // ICB's data being stale/implausible shouldn't be masked by others being
+  // fine. Calls detectDataUncertainty directly, not the full flagForReview()
+  // orchestrator, for the same "don't double this function's logged-exactly-
+  // once trust-spine contract" reason as GP PMS's generateInsights.
+  for (const record of records) {
+    const mapped = fromNhsCentralDataRecord(record, {
+      metric: "ambulanceHandoverOver60MinPct",
+      expectedUpdateFrequencyMinutes: AMBULANCE_HANDOVER_EXPECTED_UPDATE_FREQUENCY_MINUTES,
+      now,
+    });
+    try {
+      const metricUncertainty = detectDataUncertainty(mapped);
+      if (metricUncertainty.uncertain) {
+        dataUncertainties.push(`icb_metric_uncertain:${record.icbName}:${metricUncertainty.category}`);
+      }
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: "error",
+          service: "backend",
+          event: "icb_metric_uncertainty_check_failed",
+          error_class: "FlagEvaluationError",
+          context: { icbName: record.icbName, errorMessage: error instanceof Error ? error.message : String(error) },
+        }),
+      );
+      dataUncertainties.push(`icb_metric_check_failed:${record.icbName}`);
     }
   }
 

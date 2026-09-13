@@ -101,3 +101,31 @@ test("uncertainty: data older than the staleness threshold is flagged", async ()
 
   assert.ok(insights.dataUncertainties.includes("stale_data"));
 });
+
+test("STORY-009 integration: a genuinely stale most-recent record is flagged via the general uncertainty-flagging mechanism", async () => {
+  const farFuture = new Date("2026-08-25T09:00:00.000Z"); // well past DELAY_B's 12h-frequency/3x threshold
+  const { insights } = await generateCommunityInsights([DELAY_A, DELAY_B], {
+    now: farFuture,
+    idempotencyKey: "community-insights-test-capacity-uncertainty-stale",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(insights.dataUncertainties.includes("stale_data"), "the existing whole-batch check must still fire");
+  assert.ok(
+    insights.dataUncertainties.includes("most_recent_discharge_uncertain:stale_data"),
+    "the new most-recent-record check must also fire, additively",
+  );
+});
+
+test("STORY-009 integration: a fresh most-recent record is not flagged by the general uncertainty-flagging mechanism", async () => {
+  const { insights } = await generateCommunityInsights([DELAY_A, DELAY_B], {
+    now: FIXED_NOW,
+    idempotencyKey: "community-insights-test-capacity-uncertainty-fresh",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(
+    !insights.dataUncertainties.some((flag) => flag.startsWith("most_recent_discharge_uncertain:")),
+    "a fresh most-recent record must not be flagged",
+  );
+});

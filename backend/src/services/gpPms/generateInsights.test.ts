@@ -143,3 +143,46 @@ test("uncertainty: malformed capacity payload is flagged and yields no utilizati
   assert.equal(insights.capacityUtilization, null);
   assert.ok(insights.dataUncertainties.includes("capacity_payload_malformed"));
 });
+
+test("STORY-009 integration: a genuinely stale capacity metric is flagged via the general uncertainty-flagging mechanism, alongside the module's own stale_data check", async () => {
+  const wellPastStale = new Date("2026-08-23T20:00:00.000Z"); // 36h after CAPACITY.capturedAt -- past both this module's 24h batch threshold and the capacity check's 8h-frequency/3x threshold
+  const { insights } = await generateInsights([APPOINTMENT, REGISTRATION, CAPACITY], {
+    now: wellPastStale,
+    idempotencyKey: "gp-pms-insights-test-capacity-uncertainty-stale",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(insights.dataUncertainties.includes("stale_data"), "the existing whole-batch check must still fire");
+  assert.ok(
+    insights.dataUncertainties.includes("capacity_metric_uncertain:stale_data"),
+    "the new capacity-specific check must also fire, additively",
+  );
+});
+
+test("STORY-009 integration: a fresh capacity metric is not flagged by the general uncertainty-flagging mechanism", async () => {
+  const { insights } = await generateInsights([APPOINTMENT, REGISTRATION, CAPACITY], {
+    now: FIXED_NOW, // 60 minutes after CAPACITY.capturedAt -- well within the 8h expected frequency
+    idempotencyKey: "gp-pms-insights-test-capacity-uncertainty-fresh",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(
+    !insights.dataUncertainties.some((flag) => flag.startsWith("capacity_metric_uncertain:")),
+    "a fresh, plausible capacity metric must not be flagged",
+  );
+});
+
+test("STORY-009 integration: a malformed capacity payload is also flagged as missing_value by the general mechanism, since its own timestamp is still real", async () => {
+  const malformedCapacity: GpPmsRecord = {
+    ...CAPACITY,
+    payload: { availableSlotsToday: "twelve" },
+  };
+  const { insights } = await generateInsights([APPOINTMENT, REGISTRATION, malformedCapacity], {
+    now: FIXED_NOW,
+    idempotencyKey: "gp-pms-insights-test-capacity-uncertainty-malformed-payload",
+    trustLogger: new FakeTrustLogger(),
+  });
+
+  assert.ok(insights.dataUncertainties.includes("capacity_payload_malformed"));
+  assert.ok(insights.dataUncertainties.includes("capacity_metric_uncertain:missing_value"));
+});

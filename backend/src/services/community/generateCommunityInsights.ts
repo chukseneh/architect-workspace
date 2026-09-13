@@ -1,6 +1,18 @@
 import { CommunityDischargeRecord } from "./types";
 import { DEFAULT_TRUST_LOG_PATH, FileTrustLogger } from "../trustSpine/fileTrustLogger";
 import { TrustLogger } from "../trustSpine/types";
+import { fromCommunityDischargeRecord } from "../uncertaintyFlagging/fromCommunityDischargeRecord";
+import { detectDataUncertainty } from "../uncertaintyFlagging/detectDataUncertainty";
+
+/**
+ * STORY-009 integration: how often a discharge-delay record is expected
+ * under normal conditions. Same reasoning and value as ambulance's
+ * HANDOVER_EXPECTED_UPDATE_FREQUENCY_MINUTES -- 3x this value (36 hours) is
+ * comfortably above the fixture data's 24-hour happy-path gap, and a
+ * distinct, looser threshold from this module's existing 24-hour
+ * DEFAULT_STALE_AFTER_MS.
+ */
+const DISCHARGE_DELAY_EXPECTED_UPDATE_FREQUENCY_MINUTES = 12 * 60;
 
 export interface CommunityInsights {
   recordCount: number;
@@ -65,6 +77,38 @@ export async function generateCommunityInsights(
     const ageMs = now.getTime() - new Date(mostRecentCaptureAt).getTime();
     if (ageMs > staleAfterMs) {
       dataUncertainties.push("stale_data");
+    }
+  }
+
+  // STORY-009 integration: same reasoning as ambulance's generateInsights --
+  // a batch of discharge-delay records is a historical event log, so only
+  // the most-recent record (the same one stale_data above already
+  // identifies) is checked, not every individual historical event. Calls
+  // detectDataUncertainty directly, not flagForReview(), so this function's
+  // own "logged exactly once" trust-spine contract stays intact.
+  if (mostRecentCaptureAt !== null) {
+    const mostRecentRecord = records.find((record) => record.capturedAt === mostRecentCaptureAt)!;
+    const mapped = fromCommunityDischargeRecord(mostRecentRecord, {
+      expectedUpdateFrequencyMinutes: DISCHARGE_DELAY_EXPECTED_UPDATE_FREQUENCY_MINUTES,
+      now,
+    });
+    try {
+      const recordUncertainty = detectDataUncertainty(mapped);
+      if (recordUncertainty.uncertain) {
+        dataUncertainties.push(`most_recent_discharge_uncertain:${recordUncertainty.category}`);
+      }
+    } catch (error) {
+      console.error(
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: "error",
+          service: "backend",
+          event: "discharge_record_uncertainty_check_failed",
+          error_class: "FlagEvaluationError",
+          context: { recordId: mostRecentRecord.recordId, errorMessage: error instanceof Error ? error.message : String(error) },
+        }),
+      );
+      dataUncertainties.push("most_recent_discharge_check_failed");
     }
   }
 
