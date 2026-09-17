@@ -7,6 +7,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerRefreshSystemStatus } from "./tools/refreshSystemStatus.ts";
+import { registerCheckNhsTrustStatus } from "./tools/checkNhsTrustStatus.ts";
 import { registerSystemStatusResource } from "./resources/systemStatus.ts";
 import { registerPrepareDemoDayBriefing } from "./prompts/prepareDemoDayBriefing.ts";
 
@@ -19,6 +20,7 @@ const server = new McpServer({
 });
 
 registerRefreshSystemStatus(server);
+registerCheckNhsTrustStatus(server);
 registerSystemStatusResource(server);
 registerPrepareDemoDayBriefing(server);
 

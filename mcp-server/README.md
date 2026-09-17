@@ -1,6 +1,11 @@
 # mcp-server
 
-This recording shows the MCP Inspector connected to this server and running
+This recording shows the MCP Inspector connected to this server and calling
+`check_nhs_trust_status`, the real integration with the `nhs-ops-status` server.
+
+<video src="artifacts/week-06/check-nhs-trust-status-inspector-demo.mp4" controls width="720"></video>
+
+This earlier recording shows the MCP Inspector connected to this server and running
 the `refresh_system_status` tool.
 
 <video src="artifacts/week-05/refresh-system-status-inspector-demo.mp4" controls width="720"></video>
@@ -92,35 +97,71 @@ the ground it's standing on, not features it has.
 - **`node_modules/`**, created by running `npm install` once (covered
   earlier in this README). Without it, `npm start` fails immediately
   because Node can't find the one library the server imports.
+- **A sibling `nhs-ops-status/` folder** two levels up (the repo root),
+  containing that project's own `server.py`, and **the `uv` command**
+  available on your PATH. Both are only needed by the `check_nhs_trust_status`
+  tool, the one real external integration this server has — see below.
 
 **Environment variables or keys**
 
 - None. This server does not read any environment variables, API keys, or
-  secrets. Everything it needs either lives in `.colaberry/plan.json` or is
-  already inside this folder.
+  secrets. Everything it needs either lives in `.colaberry/plan.json`,
+  already inside this folder, or (for `check_nhs_trust_status` only) in
+  the sibling `nhs-ops-status/` project.
 
-**What it remembers between calls, and what happens on restart**
+**What it remembers between calls, and what happens on restart or concurrent calls**
 
-- While running, the server keeps one small piece of memory: the current
-  status and "last checked" time for each of the 8 tracked systems (NHS,
-  Ambulance, Community, Staffing, Emergency, Discharge, Hospital, Claude
-  Code). Calling the `refresh_system_status` tool updates that memory;
-  reading the system-status resource only ever looks at whatever is
-  currently sitting in it.
-- **That memory is not saved anywhere.** The instant the server restarts,
-  it is wiped and rebuilt from scratch by reading `.colaberry/plan.json`
-  again. Any status changes the tool made during the previous run are
-  gone — the server has no memory of ever having run before.
+This server holds exactly two pieces of state across calls. Both are
+documented here rather than left for someone to discover by surprise.
+
+1. **The 8 tracked systems' status and "last checked" time** (NHS,
+   Ambulance, Community, Staffing, Emergency, Discharge, Hospital, Claude
+   Code) — an in-memory table, seeded from `.colaberry/plan.json` when the
+   server starts.
+   - `refresh_system_status` re-reads `.colaberry/plan.json` fresh on
+     every call and updates the table from whatever the file currently
+     says — **not** just from whatever it said at startup. (This used to
+     be a real bug: earlier, `refresh_system_status` silently re-stamped
+     whatever value was loaded at boot with a new "just checked" time,
+     forever, even if the file changed on disk in the meantime — a wrong
+     answer with a timestamp that made it look freshly verified, and
+     nothing about it would ever have looked like an error. Fixed by
+     making the refresh actually re-read the file.)
+   - **Two calls at once:** safe. Neither the read nor the write touches
+     anything asynchronous, so Node's single-threaded event loop runs
+     each one to completion without interleaving — no torn state, ever.
+   - **Restart mid-call:** the in-flight call is just cut off; nothing
+     partial is left behind. On restart, the table reseeds fresh from
+     `.colaberry/plan.json` — any status changes since the server started
+     are gone, same as before this fix, because none of this was ever
+     saved anywhere.
+2. **An open connection to the `nhs-ops-status` server**, used by
+   `check_nhs_trust_status` — opened lazily on the first call to that
+   tool, then reused for every call after that rather than reopened each
+   time.
+   - **Two calls at once:** the connection itself is opened safely (no
+     duplicate-connect race). But once open, concurrent calls send
+     concurrent requests down that one shared connection — harmless today
+     because the only thing it calls (`search_trust_status`) is read-only
+     and touches no shared state on the other end, but it quietly assumes
+     more than `nhs-ops-status`'s own documented "one caller, one request
+     at a time" design (see that project's `docs/TRANSPORT_DECISION.md`).
+     Worth re-examining before this adapter ever calls anything on that
+     server that changes state.
+   - **Restart mid-call:** the in-flight call never resolves — the caller
+     sees a hang until the connection drops, then a clear error, not a
+     wrong answer. Separately, on Windows, the child process this opens
+     isn't guaranteed to die if this server is killed abruptly rather than
+     shut down cleanly — a real, known gap, not handled here.
 
 **What it writes to, and is it safe to run twice**
 
-- This server never writes to any file, database, or external system. It
-  only ever *reads* `.colaberry/plan.json` — it never changes it.
-- Because of that, it's completely safe to start, stop, and restart as
-  many times as you like, and safe to call `refresh_system_status` any
-  number of times in a row — it always lands in the same kind of state
-  (the same status, just a newer timestamp), never a growing pile of
-  side effects.
+- This server never writes to `.colaberry/plan.json` — every read of it,
+  including the one `refresh_system_status` now does on every call, is
+  read-only.
+- It's safe to start, stop, and restart as many times as you like, and
+  safe to call either tool any number of times in a row — neither one
+  accumulates a growing pile of side effects.
 
 **One more assumption, not asked for above but worth naming honestly**
 
