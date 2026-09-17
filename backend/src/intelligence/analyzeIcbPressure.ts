@@ -79,7 +79,13 @@ export async function analyzeIcbPressure(options: AnalyzeIcbPressureOptions): Pr
 
   const nhsResult = await ingestNhsCentralData(options.nhsClient, {
     since: options.since,
-    idempotencyKey: `${options.idempotencyKey}:nhs-ingest`,
+    // Forwarded verbatim to nhs-ops-status's idempotency_key tool argument
+    // by McpNhsCentralDataClient, which validates it against
+    // `^[A-Za-z0-9_-]+$` server-side — a colon suffix fails that check
+    // against the real server (found live via STORY-010's decisionCycle.ts,
+    // which has the identical pattern; FakeNhsCentralDataClient doesn't
+    // enforce this, so it wasn't caught by tests here either).
+    idempotencyKey: `${options.idempotencyKey}-nhs-ingest`,
     timeoutMs: options.timeoutMs,
     trustLogger,
   });
