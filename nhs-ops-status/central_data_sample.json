@@ -70,5 +70,113 @@
     "discharge_delay_beddays": 64,
     "critical_care_occupancy_pct": 80,
     "last_updated": "2026-08-27T05:00:00Z"
+  },
+  {
+    "icb_name": "NHS Kent and Medway ICB",
+    "region": "South East",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 14.7,
+    "discharge_delay_beddays": 101,
+    "critical_care_occupancy_pct": 86,
+    "last_updated": "2026-08-27T06:15:00Z"
+  },
+  {
+    "icb_name": "NHS Sussex ICB",
+    "region": "South East",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 8.9,
+    "discharge_delay_beddays": 55,
+    "critical_care_occupancy_pct": 77,
+    "last_updated": "2026-08-27T07:15:00Z"
+  },
+  {
+    "icb_name": "NHS Surrey Heartlands ICB",
+    "region": "South East",
+    "opel_level": 1,
+    "ambulance_handover_over_60min_pct": 3.6,
+    "discharge_delay_beddays": 31,
+    "critical_care_occupancy_pct": 68,
+    "last_updated": "2026-08-27T04:30:00Z"
+  },
+  {
+    "icb_name": "NHS Hampshire and Isle of Wight ICB",
+    "region": "South East",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 17.3,
+    "discharge_delay_beddays": 132,
+    "critical_care_occupancy_pct": 89,
+    "last_updated": "2026-08-27T08:15:00Z"
+  },
+  {
+    "icb_name": "NHS Devon ICB",
+    "region": "South West",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 9.4,
+    "discharge_delay_beddays": 61,
+    "critical_care_occupancy_pct": 78,
+    "last_updated": "2026-08-27T05:45:00Z"
+  },
+  {
+    "icb_name": "NHS Dorset ICB",
+    "region": "South West",
+    "opel_level": 1,
+    "ambulance_handover_over_60min_pct": 4.8,
+    "discharge_delay_beddays": 27,
+    "critical_care_occupancy_pct": 65,
+    "last_updated": "2026-08-27T04:00:00Z"
+  },
+  {
+    "icb_name": "NHS Somerset ICB",
+    "region": "South West",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 7.9,
+    "discharge_delay_beddays": 48,
+    "critical_care_occupancy_pct": 74,
+    "last_updated": "2026-08-27T06:45:00Z"
+  },
+  {
+    "icb_name": "NHS Cornwall and the Isles of Scilly ICB",
+    "region": "South West",
+    "opel_level": 1,
+    "ambulance_handover_over_60min_pct": 3.2,
+    "discharge_delay_beddays": 22,
+    "critical_care_occupancy_pct": 63,
+    "last_updated": "2026-08-27T03:45:00Z"
+  },
+  {
+    "icb_name": "NHS South Yorkshire ICB",
+    "region": "Yorkshire",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 15.8,
+    "discharge_delay_beddays": 118,
+    "critical_care_occupancy_pct": 87,
+    "last_updated": "2026-08-27T07:45:00Z"
+  },
+  {
+    "icb_name": "NHS Humber and North Yorkshire ICB",
+    "region": "Yorkshire",
+    "opel_level": 2,
+    "ambulance_handover_over_60min_pct": 11.1,
+    "discharge_delay_beddays": 69,
+    "critical_care_occupancy_pct": 81,
+    "last_updated": "2026-08-27T08:30:00Z"
+  },
+  {
+    "icb_name": "NHS Lancashire and South Cumbria ICB",
+    "region": "North West",
+    "opel_level": 4,
+    "ambulance_handover_over_60min_pct": 24.6,
+    "discharge_delay_beddays": 187,
+    "critical_care_occupancy_pct": 95,
+    "last_updated": "2026-08-27T09:15:00Z"
+  },
+  {
+    "icb_name": "NHS North West London ICB",
+    "region": "London",
+    "opel_level": 3,
+    "ambulance_handover_over_60min_pct": 19.2,
+    "discharge_delay_beddays": 154,
+    "critical_care_occupancy_pct": 92,
+    "last_updated": "2026-08-27T07:30:00Z"
   }
 ]
