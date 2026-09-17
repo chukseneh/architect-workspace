@@ -145,6 +145,48 @@ test("high data volume: prediction fan-out never exceeds the configured concurre
   assert.ok(trackingClient.maxObservedInFlight > 1, "the cap should still allow real concurrency, not force full serialization");
 });
 
+test("high data volume: 50 ICBs complete well within budget with flat ingestion cost", async () => {
+  // Real NHS has ~42 ICBs; nhs-ops-status's own real (simulated) data source
+  // only has 8. This proves the architecture at a synthetic count beyond
+  // both, since neither real environment reaches this scale to test against
+  // directly — cycling the 3 fixture ICBs so every entry still resolves a
+  // real NHS record (no no_data short-circuits masking the real cost).
+  const manyIcbNames = Array.from({ length: 50 }, (_, i) => ALL_FIXTURE_ICBS[i % ALL_FIXTURE_ICBS.length]!);
+  const trustLogger = new FakeTrustLogger();
+
+  const result = await runDecisionCycle(
+    baseOptions({
+      icbNames: manyIcbNames,
+      trustLogger,
+      predictionClient: new ConcurrencyTrackingPredictionClient(),
+    }),
+  );
+
+  assert.equal(result.outcome, "success");
+  if (result.outcome === "success") {
+    assert.equal(result.results.length, 50);
+    assert.ok(result.results.every((r) => r.outcome === "success"));
+    assert.equal(result.withinBudget, true);
+    // 50 predictions at a 5ms simulated cost each, bounded by the default
+    // concurrency cap of 5, is ~10 batches -- comfortably under a second,
+    // nowhere near the 1-hour budget, and not linear in ICB count the way
+    // 50 sequential ingestions-per-ICB would have been before this story.
+    assert.ok(result.totalDurationMs < 5000, `expected well under 5s, got ${result.totalDurationMs}ms`);
+  }
+
+  const countOf = (processName: string) => trustLogger.records.filter((r) => r.processName === processName).length;
+  assert.equal(countOf("ingestNhsCentralData"), 1);
+  assert.equal(countOf("ingestAmbulanceRecords"), 1);
+  assert.equal(countOf("ingestCommunityRecords"), 1);
+  // Not 50: generatePressurePrediction's own idempotencyKey is derived from
+  // icbName alone, so repeating the same 3 ICBs correctly dedups to 3
+  // trust-log entries at that layer — an intentional idempotency guarantee,
+  // not a miscount. The model itself was still called all 50 times (proven
+  // above by results.length and outcome), this just confirms the audit
+  // trail doesn't balloon with duplicate entries for a duplicated request.
+  assert.equal(countOf("generatePressurePrediction"), ALL_FIXTURE_ICBS.length);
+});
+
 test("a low budget is honestly reported as exceeded rather than silently passed", async () => {
   const result = await runDecisionCycle(baseOptions({ budgetMs: 0 }));
 
