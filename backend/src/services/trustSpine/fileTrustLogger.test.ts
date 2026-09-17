@@ -125,6 +125,27 @@ test("failure path: a freshly generated transaction ID that collides with an exi
   });
 });
 
+test("concurrency: concurrent record() calls on one shared instance produce an unbroken hash chain", async () => {
+  await withTempLogger(async (logger) => {
+    // STORY-010's decisionCycle.ts calls record() concurrently (Promise.all
+    // over independent ingestions) on one shared FileTrustLogger instance —
+    // this reproduces that shape directly, without going through it.
+    const inputs = Array.from({ length: 10 }, (_, i) => ({
+      idempotencyKey: `concurrent-run-${i}`,
+      processType: "ingestion" as const,
+      processName: "ingestGpPmsRecords",
+      outcome: "success" as const,
+      context: { i },
+    }));
+
+    const results = await Promise.all(inputs.map((input) => logger.record(input)));
+
+    assert.equal(new Set(results.map((r) => r.transactionId)).size, 10, "every concurrent call must get a distinct transaction ID");
+    const report = await logger.verifyIntegrity();
+    assert.deepEqual(report, { valid: true, entriesChecked: 10, brokenAtIndex: null });
+  });
+});
+
 test("failure path: an unparseable log line is treated as tampering, not silently skipped", async () => {
   await withTempLogger(async (logger, filePath) => {
     await writeFile(filePath, "not valid json\n", "utf-8");

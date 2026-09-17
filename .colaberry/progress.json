@@ -373,7 +373,7 @@
       "criteria": [
         {
           "text": "Given operational data, when processed, then the system completes decision-making in under 1 hour.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given high data volume, when processed, then the system maintains performance.",
@@ -381,13 +381,21 @@
         },
         {
           "text": "Trust: The system logs performance metrics and ensures compliance with time constraints.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/intelligence/decisionCycle.ts",
+        "backend/src/intelligence/decisionCycle.test.ts",
+        "backend/src/services/trustSpine/fileTrustLogger.ts",
+        "backend/src/services/trustSpine/fileTrustLogger.test.ts"
+      ],
+      "tests_added": [
+        "backend/src/intelligence/decisionCycle.test.ts",
+        "backend/src/services/trustSpine/fileTrustLogger.test.ts (1 new concurrency test)"
+      ],
+      "notes": "Criteria 1 and 3 proven live against the real Anthropic API and the real nhs-ops-status MCP source: a 3-ICB decision cycle completed in ~17-23s (budgetMs 3600000), trust-logged with totalDurationMs/budgetMs/withinBudget/stepTimings, hash chain verified intact. Criterion 2 left false: the redundant-per-ICB-refetch bottleneck is fixed and a concurrency cap (default 5) now bounds the per-ICB prediction fan-out, both proven by unit test, but only live-tested against 3 real fixture ICBs, not a genuinely high-volume ICB count (real NHS has ~42). A real defect was found and fixed along the way, outside this story's own file but authorized by the user before touching it: FileTrustLogger.record() had no in-process write serialization, so decisionCycle.ts's concurrent ingestion trust-log writes broke the hash chain live (verifyIntegrity: false) before the fix, and pass after it.",
+      "updated_at": "2026-09-17",
       "verification": {
         "state": "in_progress",
         "criteria_passed": 0,

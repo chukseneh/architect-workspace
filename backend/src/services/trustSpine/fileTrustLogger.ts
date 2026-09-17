@@ -27,15 +27,37 @@ export const DEFAULT_TRUST_LOG_PATH = join(process.cwd(), "data", "trust-log.jso
  * access can still edit the file) — it only guarantees tampering is
  * detectable, which is the failure mode this story asks for.
  *
- * Concurrency note: safe for sequential calls within one process (each
- * `record()` reads the whole file, then appends). It does not lock the file
- * against a second process writing at the same time — out of scope for this
- * walking skeleton, flagged rather than silently assumed away.
+ * Concurrency note: `record()` calls on one instance are serialized via an
+ * in-process write queue (see `writeQueue` below) — STORY-010 found that two
+ * concurrent callers sharing one instance (e.g. `Promise.all`-ed independent
+ * ingestions) could both read the file before either appended, producing two
+ * entries with the same `previousEntryHash` and breaking the chain. This
+ * does not lock the file against a second *process* writing at the same
+ * time — out of scope for this walking skeleton, flagged rather than
+ * silently assumed away.
  */
 export class FileTrustLogger implements TrustLogger {
+  /** Chains every record() call after the previous one's file read+append has settled, regardless of outcome. */
+  private writeQueue: Promise<void> = Promise.resolve();
+
   constructor(private readonly filePath: string) {}
 
-  async record(input: TrustLogRecordInput): Promise<TrustLogRecordResult> {
+  record(input: TrustLogRecordInput): Promise<TrustLogRecordResult> {
+    const result = this.writeQueue.then(
+      () => this.recordSerialized(input),
+      () => this.recordSerialized(input),
+    );
+    // Keep the queue moving even when this call fails, without letting that
+    // failure surface as an unhandled rejection on the queue itself — the
+    // real outcome is still delivered to the caller via `result`.
+    this.writeQueue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
+  }
+
+  private async recordSerialized(input: TrustLogRecordInput): Promise<TrustLogRecordResult> {
     const entries = await this.readEntries();
 
     const existing = entries.find((entry) => entry.idempotencyKey === input.idempotencyKey);

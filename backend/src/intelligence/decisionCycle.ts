@@ -14,6 +14,16 @@ import { PredictPressureErrorClass, PredictPressureOutput, PressurePredictionCli
 /** REQ-014: "reduce operational decision-making time ... to under 1 hour." */
 export const DEFAULT_DECISION_CYCLE_BUDGET_MS = 60 * 60 * 1000;
 
+/**
+ * Caps how many `generatePressurePrediction` calls run at once. Real NHS
+ * England has ~42 ICBs — firing that many concurrent Anthropic API requests
+ * unbounded risks tripping rate limits under genuinely high data volume
+ * (this story's own "Performance degradation" failure path), trading one
+ * kind of slowdown for a worse one. 5 is a conservative default a caller can
+ * override once real production rate limits are known.
+ */
+export const DEFAULT_MAX_CONCURRENT_PREDICTIONS = 5;
+
 export interface DecisionCycleOptions {
   /** Every ICB to produce a pressure prediction for in this run. */
   icbNames: string[];
@@ -33,6 +43,8 @@ export interface DecisionCycleOptions {
   trustLogger?: TrustLogger;
   /** REQ-014's compliance threshold. Defaults to DEFAULT_DECISION_CYCLE_BUDGET_MS; injectable for tests. */
   budgetMs?: number;
+  /** Caps concurrent prediction calls. Defaults to DEFAULT_MAX_CONCURRENT_PREDICTIONS; injectable for tests. */
+  maxConcurrentPredictions?: number;
 }
 
 export interface DecisionCycleStepTiming {
@@ -93,17 +105,22 @@ export async function runDecisionCycle(options: DecisionCycleOptions): Promise<D
   const [nhsResult, ambulanceResult, communityResult] = await Promise.all([
     ingestNhsCentralData(options.nhsClient, {
       since: options.since,
-      idempotencyKey: `${options.idempotencyKey}:nhs-ingest`,
+      // Forwarded verbatim to nhs-ops-status's idempotency_key tool
+      // argument by McpNhsCentralDataClient, which validates it against
+      // `^[A-Za-z0-9_-]+$` server-side — a colon suffix fails that check
+      // against the real server (discovered live; FakeNhsCentralDataClient
+      // doesn't enforce this, so it wasn't caught by tests).
+      idempotencyKey: `${options.idempotencyKey}-nhs-ingest`,
       timeoutMs: options.timeoutMs,
       trustLogger,
     }),
     ingestAmbulanceRecords(options.ambulanceClient, {
-      idempotencyKey: `${options.idempotencyKey}:ambulance-ingest`,
+      idempotencyKey: `${options.idempotencyKey}-ambulance-ingest`,
       timeoutMs: options.timeoutMs,
       trustLogger,
     }),
     ingestCommunityRecords(options.communityClient, {
-      idempotencyKey: `${options.idempotencyKey}:community-ingest`,
+      idempotencyKey: `${options.idempotencyKey}-community-ingest`,
       timeoutMs: options.timeoutMs,
       trustLogger,
     }),
@@ -136,8 +153,11 @@ export async function runDecisionCycle(options: DecisionCycleOptions): Promise<D
   stepTimings.push({ step: "insightGeneration", durationMs: Date.now() - insightsStart });
 
   const predictionsStart = Date.now();
-  const results: DecisionCycleIcbResult[] = await Promise.all(
-    options.icbNames.map(async (icbName): Promise<DecisionCycleIcbResult> => {
+  const maxConcurrentPredictions = options.maxConcurrentPredictions ?? DEFAULT_MAX_CONCURRENT_PREDICTIONS;
+  const results = await mapWithConcurrency(
+    options.icbNames,
+    maxConcurrentPredictions,
+    async (icbName): Promise<DecisionCycleIcbResult> => {
       const nhsRecord = nhsResult.records.find((record) => record.icbName === icbName) ?? null;
       const predictionResult = await generatePressurePrediction(nhsRecord, ambulanceInsights, communityInsights, {
         idempotencyKey: `${options.idempotencyKey}:predict-pressure:${icbName}`,
@@ -158,7 +178,7 @@ export async function runDecisionCycle(options: DecisionCycleOptions): Promise<D
         };
       }
       return { icbName, outcome: "success", prediction: predictionResult.prediction };
-    }),
+    },
   );
   stepTimings.push({ step: "predictions", durationMs: Date.now() - predictionsStart });
 
@@ -198,4 +218,32 @@ export async function runDecisionCycle(options: DecisionCycleOptions): Promise<D
     });
     return { outcome: "data_processing_error", source, errorClass, errorMessage, totalDurationMs, transactionId };
   }
+}
+
+/**
+ * Runs `fn` over `items` with at most `concurrency` calls in flight at once,
+ * preserving input order in the returned array. A small worker-pool over a
+ * shared cursor rather than chunking — a slow item never blocks a fast one
+ * behind it in the same batch. No dependency added for this (CLAUDE.md:
+ * "drive-by npm install is not allowed") since the whole thing is this
+ * short.
+ */
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex++;
+      results[currentIndex] = await fn(items[currentIndex]!, currentIndex);
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }

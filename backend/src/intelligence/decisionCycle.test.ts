@@ -5,7 +5,27 @@ import { FakeNhsCentralDataClient } from "../services/nhsCentralData/fakeNhsCent
 import { MockAmbulanceClient } from "../services/ambulance/mockAmbulanceClient";
 import { MockCommunityClient } from "../services/community/mockCommunityClient";
 import { FakePressurePredictionClient } from "./fakePressurePredictionClient";
+import { PressurePredictionClient, PressurePredictionRequestOptions } from "./types";
 import { FakeTrustLogger } from "../services/trustSpine/fakeTrustLogger";
+
+/** Tracks how many `predict()` calls were ever in flight at once, to prove a concurrency cap holds. */
+class ConcurrencyTrackingPredictionClient implements PressurePredictionClient {
+  inFlight = 0;
+  maxObservedInFlight = 0;
+
+  async predict(_prompt: string, _options: PressurePredictionRequestOptions): Promise<string> {
+    this.inFlight++;
+    this.maxObservedInFlight = Math.max(this.maxObservedInFlight, this.inFlight);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    this.inFlight--;
+    return JSON.stringify({
+      pressure_level: "Low",
+      confidence: 0.9,
+      horizon: "4-24h",
+      contributing_factors: ["OPEL level 1", "all metrics nominal"],
+    });
+  }
+}
 
 const FIXED_NOW = new Date("2026-08-27T08:00:00.000Z");
 
@@ -101,6 +121,28 @@ test("data processing error: an NHS central data ingestion failure short-circuit
     assert.equal(result.errorClass, "ConnectionError");
   }
   assert.equal(trustLogger.records.some((r) => r.processName === "generatePressurePrediction"), false);
+});
+
+test("high data volume: prediction fan-out never exceeds the configured concurrency cap", async () => {
+  const trackingClient = new ConcurrencyTrackingPredictionClient();
+  // Repeat the 3 fixture ICBs to get 9 prediction calls total — each still
+  // resolves against a real matching NHS record, so every one actually
+  // reaches predict(), not a no_data short-circuit.
+  const manyIcbNames = [...ALL_FIXTURE_ICBS, ...ALL_FIXTURE_ICBS, ...ALL_FIXTURE_ICBS];
+
+  const result = await runDecisionCycle(
+    baseOptions({ icbNames: manyIcbNames, predictionClient: trackingClient, maxConcurrentPredictions: 2 }),
+  );
+
+  assert.equal(result.outcome, "success");
+  if (result.outcome === "success") {
+    assert.equal(result.results.length, manyIcbNames.length);
+  }
+  assert.ok(
+    trackingClient.maxObservedInFlight <= 2,
+    `expected at most 2 concurrent predict() calls, observed ${trackingClient.maxObservedInFlight}`,
+  );
+  assert.ok(trackingClient.maxObservedInFlight > 1, "the cap should still allow real concurrency, not force full serialization");
 });
 
 test("a low budget is honestly reported as exceeded rather than silently passed", async () => {
