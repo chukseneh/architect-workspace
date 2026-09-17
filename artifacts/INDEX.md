@@ -10,5 +10,6 @@ week by week. Each row links to the artifact in this repo.
 | Week 3 | Build Your First AI Workflow — workflow-plan.md | [`workflow-plan.md`](./week-03/workflow-plan.md) | Own project | 4 KB |
 | Week 4 | Build Your Prompt Library — library_report.md | [`library-report.md`](./week-04/library-report.md) | NEXUS AI — Healthcare Operations Intelligence Platform | 5 KB |
 | Week 5 | MCP Server Implementation Task — mcp-server-README.pdf | [`mcp-server-readme.pdf`](./week-05/mcp-server-readme.pdf) *(held on platform)* | NEXUS AI — Healthcare Operations Intelligence Platform | 99 KB |
+| Week 6 | Build Your Production MCP Server — mcp-server-build-summary.pdf | [`mcp-server-build-summary.pdf`](./week-06/mcp-server-build-summary.pdf) *(held on platform)* | NEXUS AI — Healthcare Operations Intelligence Platform | 192 KB |
 
-5 artifacts.
+6 artifacts.
