@@ -38,6 +38,40 @@ describe('DashboardPage', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
+  it('renders one card per ICB, colour-coded by OPEL level, with the level also as text', async () => {
+    const snapshot: DashboardSnapshot = {
+      ...CALM_SNAPSHOT,
+      metrics: [
+        { icbName: 'NHS Leeds ICB', currentOpelLevel: 1, forecastedPressureLevel: 'Low' },
+        { icbName: 'NHS South East London ICB', currentOpelLevel: 4, forecastedPressureLevel: 'Critical' },
+        { icbName: 'NHS Unknown ICB', currentOpelLevel: 9, forecastedPressureLevel: 'Bogus' },
+      ],
+    };
+    const fetchSnapshot = vi.fn().mockResolvedValue({ outcome: 'success', snapshot });
+
+    render(<DashboardPage entries={ENTRIES} fetchSnapshot={fetchSnapshot} />);
+
+    const card = (name: string) => screen.getByRole('heading', { name }).closest('li');
+    await waitFor(() => expect(card('NHS Leeds ICB')).toHaveAttribute('data-level', '1'));
+    expect(card('NHS South East London ICB')).toHaveAttribute('data-level', '4');
+    expect(card('NHS South East London ICB')).toHaveTextContent('OPEL 4');
+    // Out-of-range OPEL falls back to the neutral palette, not a misleading colour.
+    expect(card('NHS Unknown ICB')).toHaveAttribute('data-level', '0');
+  });
+
+  it('shows risks and actions, and an explicit empty state when there are none', async () => {
+    const snapshot: DashboardSnapshot = {
+      ...CALM_SNAPSHOT,
+      briefing: { ...CALM_SNAPSHOT.briefing, top_risks: ['Handover delays'], recommended_actions: [] },
+    };
+    const fetchSnapshot = vi.fn().mockResolvedValue({ outcome: 'success', snapshot });
+
+    render(<DashboardPage entries={ENTRIES} fetchSnapshot={fetchSnapshot} />);
+
+    await waitFor(() => expect(screen.getByText('Handover delays')).toBeInTheDocument());
+    expect(screen.getByText('None reported.')).toBeInTheDocument();
+  });
+
   it('data uncertainties: renders a flagged alert section when the snapshot carries any', async () => {
     const flaggedSnapshot: DashboardSnapshot = {
       ...CALM_SNAPSHOT,

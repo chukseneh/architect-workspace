@@ -1,0 +1,192 @@
+/* Dashboard styling. Status is never colour-only: every coloured badge also
+   carries its level as text (WCAG 2.1 AA, root CLAUDE.md's design rules). */
+
+.dashboard {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --border: #d9dee6;
+  --text: #1b2430;
+  --text-muted: #566274;
+
+  --lvl-1-strip: #2e9e5b; --lvl-1-bg: #e4f4ea; --lvl-1-text: #14532d;
+  --lvl-2-strip: #c9a017; --lvl-2-bg: #fbf3d0; --lvl-2-text: #674d05;
+  --lvl-3-strip: #e8730c; --lvl-3-bg: #ffe8d1; --lvl-3-text: #7c2d12;
+  --lvl-4-strip: #d32f2f; --lvl-4-bg: #fde0e0; --lvl-4-text: #7f1d1d;
+  --lvl-0-strip: #8792a2; --lvl-0-bg: #e8ebf0; --lvl-0-text: #3a4556;
+
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  color: var(--text);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  .dashboard {
+    --bg: #0f151d;
+    --surface: #18212c;
+    --border: #2b3645;
+    --text: #e7ecf3;
+    --text-muted: #9aa7b8;
+
+    --lvl-1-strip: #3fb970; --lvl-1-bg: #12301f; --lvl-1-text: #a8e6c0;
+    --lvl-2-strip: #e0b93a; --lvl-2-bg: #38300f; --lvl-2-text: #f3dd8e;
+    --lvl-3-strip: #f28a2e; --lvl-3-bg: #3e2412; --lvl-3-text: #ffc99b;
+    --lvl-4-strip: #ef5350; --lvl-4-bg: #421919; --lvl-4-text: #ffb4b0;
+    --lvl-0-strip: #6c788a; --lvl-0-bg: #262f3b; --lvl-0-text: #c3cbd7;
+  }
+}
+
+/* Level palette, applied via data-level on any element that needs it. */
+.dashboard [data-level='1'] { --strip: var(--lvl-1-strip); --tint: var(--lvl-1-bg); --ink: var(--lvl-1-text); }
+.dashboard [data-level='2'] { --strip: var(--lvl-2-strip); --tint: var(--lvl-2-bg); --ink: var(--lvl-2-text); }
+.dashboard [data-level='3'] { --strip: var(--lvl-3-strip); --tint: var(--lvl-3-bg); --ink: var(--lvl-3-text); }
+.dashboard [data-level='4'] { --strip: var(--lvl-4-strip); --tint: var(--lvl-4-bg); --ink: var(--lvl-4-text); }
+.dashboard [data-level='0'] { --strip: var(--lvl-0-strip); --tint: var(--lvl-0-bg); --ink: var(--lvl-0-text); }
+
+.dashboard h2,
+.dashboard h3 {
+  margin: 0 0 0.75rem;
+  line-height: 1.25;
+}
+
+.dashboard h2 { font-size: 1.25rem; }
+.dashboard h3 { font-size: 1rem; letter-spacing: 0.01em; }
+
+.dashboard__pill {
+  display: inline-block;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--tint);
+  border: 1px solid var(--strip);
+}
+
+/* Briefing banner, full width across the top. */
+.briefing {
+  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--strip);
+  border-radius: 8px;
+}
+
+.briefing__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.briefing__top h2 { margin: 0; }
+
+.briefing__headline {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.briefing__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Data-uncertainty alert. */
+.uncertainty {
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1.25rem;
+  background: var(--lvl-3-bg);
+  color: var(--lvl-3-text);
+  border: 1px solid var(--lvl-3-strip);
+  border-radius: 8px;
+}
+
+.uncertainty ul { margin: 0.4rem 0 0; padding-left: 1.25rem; }
+
+/* Risks and actions side by side; stacks on narrow screens. */
+.briefing-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 40rem) {
+  .briefing-lists { grid-template-columns: 1fr; }
+}
+
+.panel {
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.panel ul { margin: 0; padding-left: 1.25rem; }
+.panel li + li { margin-top: 0.4rem; }
+.panel__empty { margin: 0; color: var(--text-muted); font-style: italic; }
+
+/* One card per ICB. */
+.icb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.icb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 6px solid var(--strip);
+  border-radius: 8px;
+}
+
+.icb-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.icb-card__metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.icb-card__metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.icb-card__metric dt { color: var(--text-muted); font-size: 0.85rem; }
+.icb-card__metric dd { margin: 0; }
+
+.icb-card__opel {
+  padding: 0.25rem 0.85rem;
+  font-size: 1rem;
+}
+
+.dashboard__meta {
+  margin: 1.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.dashboard__state { padding: 1.5rem 1rem; }
