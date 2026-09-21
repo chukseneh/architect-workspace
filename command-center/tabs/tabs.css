@@ -1,0 +1,75 @@
+/* Styles for the eight tab panels. Uses only the tokens declared in index.html's
+   :root (plus the tone colours below, which reuse them), so a brand-colour swap
+   stays a one-line change there. */
+
+.tab-body { margin-top: 8px; }
+.tab-heading { font-size: 1.5rem; line-height: 1.2; }
+.tab-note { margin-top: 8px; max-width: 720px; color: var(--text-muted); font-size: 0.88rem; line-height: 1.55; }
+.section-heading { margin: 32px 0 12px; font-family: var(--font-body); font-size: 1rem; font-weight: 600; }
+.tab-body > .card-grid, .tab-body > .card, .tab-body > .table-wrap, .tab-body > .gantt { margin-top: 20px; }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+.card-head-right { display: flex; align-items: center; gap: 8px; flex: none; }
+.card-summary { margin-top: 4px; color: var(--text-muted); font-size: 0.86rem; line-height: 1.45; }
+.big-figure { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; }
+.big-figure.muted { color: var(--text-faint); }
+.empty-state { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-top: 20px; }
+.empty-state[role="alert"] { border-color: var(--status-error); color: var(--status-error); }
+
+.detail-text { margin: 8px 0; font-size: 0.85rem; line-height: 1.5; }
+.detail-subhead { margin-top: 12px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+.detail-block { padding: 10px 0; border-top: 1px solid var(--border); }
+.detail-block:first-of-type { border-top: none; }
+.detail-block-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.detail-row .detail-value { max-width: 65%; overflow-wrap: anywhere; }
+.tab-body .detail-value { font-family: var(--font-body); }
+
+/* status pills: tone, never colour alone (each carries its own text) */
+.pill.tone-neutral { background: var(--status-unknown-bg); color: var(--text-muted); }
+.pill.tone-good { background: var(--status-connected-bg); color: var(--status-connected); }
+.pill.tone-bad { background: var(--status-error-bg); color: var(--status-error); }
+.pill.tone-info { background: var(--accent-soft); color: var(--accent); }
+
+.system-line { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.86rem; }
+.system-line .system-meta { margin-left: auto; }
+
+.sparkline { display: block; width: 100%; max-width: 240px; height: 56px; color: var(--accent); }
+
+/* gantt */
+.gantt-row { display: grid; grid-template-columns: 220px 1fr; gap: 12px; align-items: center; padding: 6px 0; }
+.gantt-label { font-size: 0.8rem; color: var(--text-muted); }
+.gantt-track { position: relative; height: 26px; background: var(--surface-alt); border-radius: 6px; }
+.gantt-bar { position: absolute; top: 3px; bottom: 3px; background: var(--accent); border-radius: 4px; min-width: 6px; overflow: hidden; }
+.gantt-bar-text { display: block; padding: 0 6px; font-size: 0.66rem; line-height: 20px; color: var(--surface); white-space: nowrap; }
+.gantt-undated { padding: 0 8px; font-size: 0.72rem; line-height: 26px; color: var(--text-faint); }
+.gantt-marker { position: absolute; top: -2px; bottom: -2px; width: 0; border-left: 2px dashed var(--text-faint); }
+.gantt-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 0.72rem; color: var(--text-muted); }
+.gantt-key { display: inline-flex; align-items: center; gap: 6px; }
+.gantt-key-line { display: inline-block; width: 14px; border-top: 2px dashed var(--text-faint); }
+@media (max-width: 700px) { .gantt-row { grid-template-columns: 1fr; gap: 4px; } }
+
+.criteria { margin: 6px 0 0; padding-left: 18px; font-size: 0.8rem; line-height: 1.5; }
+.criteria li.pass .mono { color: var(--status-connected); }
+.criteria .mono { font-size: 0.68rem; font-weight: 700; }
+.field-list { margin: 6px 0 0; padding-left: 18px; font-size: 0.82rem; line-height: 1.6; }
+
+/* traceability table */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.trace-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.trace-table th, .trace-table td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+.trace-table th { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); background: var(--surface-alt); }
+.trace-table tr.gap-row td { background: var(--status-error-bg); }
+.trace-detail td { background: var(--surface-alt); }
+.row-toggle { appearance: none; border: none; background: none; padding: 0; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+/* ask panel */
+.chat { margin-top: 12px; }
+.chat-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 12px; }
+.chat-label { grid-column: 1 / -1; font-size: 0.78rem; color: var(--text-muted); }
+.chat-input { min-width: 0; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 0.9rem; }
+.chat-send { padding: 9px 18px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent); color: var(--surface); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.chat-log { margin-top: 14px; display: grid; gap: 8px; max-height: 360px; overflow-y: auto; }
+.chat-q { justify-self: end; max-width: 80%; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); font-size: 0.85rem; }
+.chat-a { max-width: 92%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; }
+.chat-a.unanswered { color: var(--text-muted); border-style: dashed; }
+.chat-cite { margin-top: 6px; font-size: 0.72rem; color: var(--text-faint); }

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "projectId": "10f94b12-e453-4eff-bb98-c59f9df6b56b",
+  "storyId": "STORY-000",
+  "projectTruthBaseRevision": 0,
+  "observedAt": "2026-09-21T00:00:00Z",
+  "sourceCommitSha": null,
+  "factProposals": [],
+  "decisions": [
+    {
+      "statement": "Guardrail status is derived from the verification state of the stories that fulfil each requirement, not stored as a flag in plan.json.",
+      "rationale": "A stored flag went stale (it still said no code existed after the guardrail stories shipped); deriving it keeps the page and progress.json from disagreeing.",
+      "evidence": "command-center/tabs/model.js#guardrailStatus"
+    },
+    {
+      "statement": "The Knowledge base question box is a deterministic keyword search that cites the tab each answer came from, not a language model.",
+      "rationale": "A static page cannot hold an API key, and a search over loaded data cannot invent an answer.",
+      "evidence": "command-center/tabs/knowledgeSearch.js"
+    }
+  ],
+  "limitations": [
+    {
+      "statement": "No story in plan.json has due_on or due_baseline_on, so Project Management shows release windows and cannot track slippage.",
+      "evidence": ".colaberry/plan.json"
+    },
+    {
+      "statement": "The AI Agents tab shows story owners, not scoped agents, because plan.agents is empty; no run history exists in the project files.",
+      "evidence": "command-center/tabs/agents.js"
+    }
+  ],
+  "demonstrationEvidence": [
+    { "kind": "test", "ref": "tests/commandCenter/model.test.js" }
+  ],
+  "measurementEvents": []
+}

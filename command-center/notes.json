@@ -1,0 +1,29 @@
+{
+  "_how_to_use": "Add an entry to notes to have it appear on the Knowledge base tab. Each entry needs id, kind (decision | note | limit), date, title, text and evidence (the file, commit or test that shows it). No evidence, no entry.",
+  "notes": [
+    {
+      "id": "NOTE-001",
+      "kind": "decision",
+      "date": "2026-09-06",
+      "title": "Frontend uses Vite, not Create React App",
+      "text": "Create React App is deprecated upstream and pulls a heavier dependency tree than a walking skeleton needs. The output is still React and TypeScript.",
+      "evidence": "frontend/CLAUDE.md"
+    },
+    {
+      "id": "NOTE-002",
+      "kind": "limit",
+      "date": "2026-09-17",
+      "title": "The NHS ingest tool returns at most 20 records per call",
+      "text": "nhs-ops-status caps the limit argument at 20 on the server, so the real-data decision cycle was proved at 20 ICBs. Volume beyond that is covered by a synthetic 50-ICB test only.",
+      "evidence": "PROGRESS.md, STORY-010 step 4"
+    },
+    {
+      "id": "NOTE-003",
+      "kind": "decision",
+      "date": "2026-09-17",
+      "title": "Trust-log writes are serialised in-process",
+      "text": "Concurrent writes to one FileTrustLogger broke the hash chain. Writes now queue so the chain stays valid when the decision cycle ingests sources in parallel.",
+      "evidence": "PROGRESS.md, STORY-010 step 2"
+    }
+  ]
+}

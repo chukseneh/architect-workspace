@@ -495,6 +495,7 @@
   .dod-status.pass { color: var(--status-connected); }
   .dod-status.fail { color: var(--status-unknown); }
 </style>
+<link rel="stylesheet" href="tabs/tabs.css" />
 
 <div class="sample-banner">Sample data — for shape and layout only, not a real measurement</div>
 
@@ -523,7 +524,7 @@
   <div class="panel-overview" id="panel-overview" role="tabpanel" tabindex="-1">
   <section class="hero">
     <h1 id="mission-heading">AI-powered operational intelligence for NHS: predicting pressure, identifying risk, and recommending interventions.</h1>
-    <p class="hero-mission">This is the Command Centre for that build — one page showing what is being built, what it is meant to move, and how far along it is. Nine tabs total; this is tab 1 of 9. The rest open as placeholder panels below and will be built out one at a time.</p>
+    <p class="hero-mission">This is the Command Centre for that build — one page showing what is being built, what it is meant to move, and how far along it is. Nine tabs, all built: this is the Overview, and the other eight open from the strip below.</p>
 
     <div class="facts-row">
       <div class="fact">
@@ -538,13 +539,13 @@
       </div>
       <div class="fact">
         <div class="fact-value" id="fact-guardrails">—</div>
-        <div class="fact-label">Guardrails enforced in code</div>
-        <div class="fact-sub">nothing shipped yet</div>
+        <div class="fact-label">Guardrails backed by verified stories</div>
+        <div class="fact-sub" id="fact-guardrails-sub">—</div>
       </div>
       <div class="fact">
         <div class="fact-value" id="fact-demo">—</div>
         <div class="fact-label">Days to demo</div>
-        <div class="fact-sub">2026-10-08</div>
+        <div class="fact-sub" id="fact-demo-sub">—</div>
       </div>
     </div>
   </section>
@@ -620,7 +621,7 @@
       </div>
       <div class="countdown-row">
         <span class="countdown-label">Demo prep window</span>
-        <span class="countdown-value mono">2026-10-01 → 2026-10-08</span>
+        <span class="countdown-value mono" id="countdown-prep">—</span>
       </div>
 
       <div class="card-toggle-hint">Show detail</div>
@@ -648,17 +649,28 @@
 
   <section class="tabs-section">
     <h2>All 9 tabs</h2>
-    <p class="tabs-hint">Overview is built and open below. Click a tab — or Tab to it and press Enter or Space — to open its panel.</p>
+    <p class="tabs-hint">Click a tab — or Tab to it and press Enter or Space — to open its panel.</p>
     <div class="tabs-strip" id="tabs-strip" role="tablist" aria-label="Command Center sections"></div>
     <div id="tab-panels"></div>
   </section>
 
   <footer>
-    <span>Every number on this page is read at runtime from <span class="mono">.colaberry/plan.json</span>, <span class="mono">progress.json</span>, and <span class="mono">manifest.json</span> — nothing here is hardcoded. Future tabs read from the same files.</span>
+    <span>Every number on this page is read at runtime from <span class="mono">.colaberry/plan.json</span>, <span class="mono">progress.json</span>, and <span class="mono">manifest.json</span> — plan content is not hardcoded. Data is as of the last sync, not live.</span>
     <span id="footer-mode">Mode: Real</span>
   </footer>
 </div>
 
+<script src="tabs/model.js"></script>
+<script src="tabs/knowledgeSearch.js"></script>
+<script src="tabs/ui.js"></script>
+<script src="tabs/outcomes.js"></script>
+<script src="tabs/users.js"></script>
+<script src="tabs/guardrails.js"></script>
+<script src="tabs/systems.js"></script>
+<script src="tabs/projectManagement.js"></script>
+<script src="tabs/agents.js"></script>
+<script src="tabs/knowledgeBase.js"></script>
+<script src="tabs/dataModel.js"></script>
 <script>
   // ---------------------------------------------------------------
   // Data comes from three files under .colaberry/, fetched at
@@ -762,6 +774,7 @@
     document.getElementById("btn-sample").classList.toggle("active", mode === "sample");
     document.getElementById("footer-mode").textContent = "Mode: " + (mode === "sample" ? "Sample" : "Real");
     renderSystems();
+    CC.rerenderAll();
   }
 
   function renderClock() {
@@ -780,10 +793,11 @@
     const generated = new Date(MANIFEST.generated_at);
     const ageDays = Math.floor((Date.now() - generated.getTime()) / DAY_MS);
     const staleAfter = MANIFEST.stale_after_days || 7;
-    const isStale = ageDays > staleAfter;
+    // Compare the true age, not the floored day count: 7.9 days exceeds a week.
+    const isStale = Date.now() - generated.getTime() > staleAfter * DAY_MS;
     el.textContent =
       "Data as of " + fmtDate(generated) + " (" + ageDays + (ageDays === 1 ? " day" : " days") + " old)" +
-      (isStale ? " — stale, older than " + staleAfter + " days" : "");
+      (isStale ? " — older than " + staleAfter + " days, sync from the portal to refresh" : "");
     el.classList.toggle("stale", isStale);
   }
 
@@ -949,25 +963,26 @@
   function renderGuardrails() {
     const list = document.getElementById("guardrails-list");
     list.innerHTML = "";
-    let enforcedCount = 0;
-    PLAN.guardrails.forEach((g) => {
-      if (g.enforced) enforcedCount++;
-      const row = document.createElement("div");
-      row.className = "guardrail";
-      row.innerHTML =
-        '<div class="guardrail-top">' +
-        '<span class="guardrail-id">' + g.id + "</span>" +
-        '<span class="pill ' + (g.enforced ? "enforced" : "not-enforced") + '">' +
-        (g.enforced ? "Enforced" : "Not enforced yet") +
-        "</span>" +
-        "</div>" +
-        '<div class="guardrail-text">' + g.text + "</div>" +
-        '<div class="guardrail-note">' + g.note + "</div>";
-      list.appendChild(row);
+    // Whether a guardrail is kept is derived from the verification state of the
+    // stories that fulfil it (CC.guardrailStatus), not stored as a flag in plan.json.
+    const guardrails = (PLAN.derived && PLAN.derived.guardrails) || [];
+    let keptCount = 0;
+    guardrails.forEach((g) => {
+      const st = CC.guardrailStatus(g, PLAN, PROGRESS);
+      if (st.kept) keptCount++;
+      list.appendChild(CC.el("div", { class: "guardrail" },
+        CC.el("div", { class: "guardrail-top" },
+          CC.el("span", { class: "guardrail-id", text: g.id }),
+          CC.el("span", { class: "pill " + (st.kept ? "enforced" : "not-enforced"), text: st.kept ? "Backed by verified stories" : "Not yet kept" })),
+        CC.el("div", { class: "guardrail-text", text: g.statement }),
+        CC.el("div", { class: "guardrail-note", text: st.reason })));
     });
-    document.getElementById("fact-guardrails").textContent = enforcedCount + " / " + PLAN.guardrails.length;
+    document.getElementById("fact-guardrails").textContent = keptCount + " / " + guardrails.length;
+    document.getElementById("fact-guardrails-sub").textContent = "from story verification";
     document.getElementById("guardrails-summary").textContent =
-      enforcedCount + " / " + PLAN.guardrails.length + " guardrails enforced in code.";
+      guardrails.length === 0
+        ? "The plan has no guardrails."
+        : keptCount + " / " + guardrails.length + " guardrails backed by verified stories.";
   }
 
   function renderCountdowns() {
@@ -982,23 +997,13 @@
     document.getElementById("countdown-demo").textContent =
       toDemo > 0 ? toDemo + " days" : toDemo === 0 ? "today" : Math.abs(toDemo) + " days ago";
     document.getElementById("fact-demo").textContent = toDemo > 0 ? toDemo : toDemo === 0 ? "today" : "past";
+    document.getElementById("fact-demo-sub").textContent = PLAN.meta.demoDay;
+    document.getElementById("countdown-prep").textContent = PLAN.meta.buildEnd + " → " + PLAN.meta.demoDay;
   }
 
-  // One-sentence, honest description of what each not-yet-built tab will
-  // hold. This is roadmap copy, not project data — it is not read from
-  // .colaberry/plan.json because it describes intent, not a produced
-  // result. No numbers, statuses, or connections are stated here.
-  const TAB_DESCRIPTIONS = {
-    "Outcomes": "It will hold the patient and operational outcomes this system is meant to move.",
-    "Users & Use Case": "It will describe who uses this system and the use case it serves.",
-    "Guardrails": "It will hold the full guardrail detail and enforcement history behind the Guardrails card on Overview.",
-    "Systems": "It will hold per-system connection detail behind the Systems card on Overview.",
-    "Project Management": "It will hold the release plan, story tracking, and delivery status for this build.",
-    "AI Agents": "It will hold the AI agents this project runs and what each one does.",
-    "Knowledge Base": "It will hold the reference material and documentation backing this system.",
-    "Data Model": "It will hold the data model and schema this system is built on.",
-  };
-
+  // Tabs 2-9 are rendered by command-center/tabs/*.js (registered by label in
+  // PLAN.tabs). A label with no registered renderer falls back to an honest
+  // "not built yet" card rather than a blank panel.
   function renderTabs() {
     const strip = document.getElementById("tabs-strip");
     const panels = document.getElementById("tab-panels");
@@ -1019,14 +1024,13 @@
       btn.setAttribute("aria-selected", "false");
       btn.innerHTML =
         '<div class="tab-chip-name">' + t.label + "</div>" +
-        '<div class="tab-chip-status">' + (isOverview ? "Built" : "Not built yet") + "</div>";
+        '<div class="tab-chip-status">' + (isOverview || CC.hasTab(t.label) ? "Built" : "Not built yet") + "</div>";
       btn.addEventListener("click", () => openTab(i));
       strip.appendChild(btn);
 
       if (isOverview) {
         document.getElementById("panel-overview").setAttribute("aria-labelledby", btnId);
       } else {
-        const desc = TAB_DESCRIPTIONS[t.label] || ("It will hold " + t.label + " content once that section is built.");
         const detailId = "detail-tab-" + i;
 
         const panel = document.createElement("div");
@@ -1036,6 +1040,12 @@
         panel.setAttribute("aria-labelledby", btnId);
         panel.tabIndex = -1;
         panel.hidden = true;
+
+        if (CC.hasTab(t.label)) {
+          panels.appendChild(panel);
+          CC.mountTab(t.label, panel);
+          return;
+        }
 
         const card = document.createElement("div");
         card.className = "card";
@@ -1047,7 +1057,7 @@
           "</div></div>" +
           '<div class="card-toggle-hint">Show detail</div>' +
           '<div class="card-detail" id="' + detailId + '" hidden>' +
-          '<p class="other-body">' + t.label + " is not built yet. " + desc + "</p>" +
+          '<p class="other-body">' + t.label + " is not built yet.</p>" +
           "</div>";
         panel.appendChild(card);
         panels.appendChild(panel);
@@ -1090,6 +1100,7 @@
       return;
     }
 
+    await CC.loadNotes();
     applyMode();
     renderDataAge();
     renderRelease();
