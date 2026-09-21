@@ -1,4 +1,5 @@
 import { DashboardPage } from './pages/DashboardPage';
+import { SimulatorPage } from './pages/SimulatorPage';
 import type { IcbDashboardEntry } from './services/dashboardApi';
 
 /**
@@ -18,6 +19,7 @@ function App() {
     <main>
       <h1>AI Healthcare Operations Command Centre</h1>
       <DashboardPage entries={DEMO_ENTRIES} />
+      <SimulatorPage entries={DEMO_ENTRIES} />
     </main>
   );
 }

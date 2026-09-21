@@ -1,10 +1,12 @@
 import express, { Express } from "express";
 import { createDashboardRouter, DashboardRouteDeps } from "./routes/dashboardRoute";
 import { createDecisionCycleRouter, DecisionCycleRouteDeps } from "./routes/decisionCycleRoute";
+import { createScenarioRouter, ScenarioRouteDeps } from "./routes/scenarioRoute";
 
 export interface CreateAppDeps {
   dashboard?: DashboardRouteDeps;
   decisionCycle?: DecisionCycleRouteDeps;
+  scenario?: ScenarioRouteDeps;
 }
 
 /**
@@ -24,6 +26,7 @@ export function createApp(deps: CreateAppDeps = {}): Express {
 
   app.use("/api/dashboard", createDashboardRouter(deps.dashboard));
   app.use("/api/decision-cycle", createDecisionCycleRouter(deps.decisionCycle));
+  app.use("/api/scenario", createScenarioRouter(deps.scenario));
 
   return app;
 }
